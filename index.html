@@ -1233,8 +1233,43 @@ footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 60px 6% 28px; display:
     .faq-container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
     .faq-item { background: var(--white); border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.4s var(--ease); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
     .faq-item:hover { transform: translateY(-3px); border-color: rgba(142,67,172,0.2); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
-    .faq-question { width: 100%; text-align: left; padding: 28px 32px; background: transparent; border: none; font-size: 18px; font-weight: 600; color: var(--black); letter-spacing: -0.01em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: var(--sans); outline: none; transition: color 0.3s var(--ease); }
-    .faq-item.active .faq-question { color: var(--purple); }
+    
+    /* Shield FAQ buttons from global button reset styles */
+    .faq-question,
+    .faq-question:hover,
+    .faq-question:focus,
+    .faq-question:active {
+      width: 100%;
+      text-align: left;
+      padding: 28px 32px;
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--black) !important;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--sans);
+      outline: none !important;
+      box-shadow: none !important;
+      transition: color 0.3s var(--ease) !important;
+    }
+    
+    .faq-question:hover,
+    .faq-question:focus {
+      color: var(--purple) !important;
+    }
+    
+    .faq-item.active .faq-question,
+    .faq-item.active .faq-question:hover,
+    .faq-item.active .faq-question:focus {
+      color: var(--purple) !important;
+    }
+    
     .faq-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--purple-light); display: flex; align-items: center; justify-content: center; color: var(--purple); transition: all 0.4s var(--ease); flex-shrink: 0; }
     .faq-item.active .faq-icon { transform: rotate(180deg); background: var(--purple); color: var(--white); }
     .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease); padding: 0 32px; }
