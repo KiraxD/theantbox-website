@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Privacy Policy | AntBox</title>
+	<link href="css/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet"/>
+	<style>
+		:root {
+		  --beige: #f5f3ec;
+		  --beige-dark: #eceade;
+		  --purple: #8e43ac;
+		  --purple-light: rgba(142,67,172,0.08);
+		  --purple-mid: rgba(142,67,172,0.15);
+		  --black: #111111;
+		  --text: #2a2a2a;
+		  --muted: #666666;
+		  --white: #ffffff;
+		  --sans: 'DM Sans', -apple-system, sans-serif;
+		  --serif: 'DM Serif Display', Georgia, serif;
+		  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+		  --radius: 14px;
+		  --radius-lg: 20px;
+		}
+
+		*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+		html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; width: 100%; }
+
+		body {
+		  font-family: var(--sans);
+		  background: var(--beige);
+		  color: var(--text);
+		  line-height: 1.6;
+		  overflow-x: hidden;
+		  width: 100%;
+		  margin: 0;
+		  padding: 0;
+		}
+
+		nav {
+		    position: fixed; 
+		    top: 0; 
+		    left: 50%; 
+		    transform: translateX(-50%);
+		    width: 100%;
+		    max-width: 100vw;
+		    height: 90px;
+		    display: flex; 
+		    justify-content: space-between; 
+		    align-items: center;
+		    padding: 0 40px; 
+		    z-index: 1000;
+		    transition: all 0.4s ease-out;
+		    background: transparent;
+		    border: 1px solid transparent;
+		    backdrop-filter: blur(0px);
+		    -webkit-backdrop-filter: blur(0px);
+		    box-sizing: border-box;
+		    will-change: width, max-width, top, background-color, box-shadow, border-radius, height, padding;
+		}
+
+		.logo { display: flex; align-items: center; text-decoration: none; position: relative; height: 100%; }
+		.logo img { transition: all 0.4s ease-out; width: auto; }
+		.logo-main { height: 160px !important; width: auto; opacity: 1; transform: scale(1); transform-origin: left center; will-change: transform, opacity; }
+		.logo-shrunk { position: absolute; left: 0; top: 50%; transform: translateY(-50%) scale(0.8); height: 32px !important; opacity: 0; pointer-events: none; will-change: transform, opacity; }
+
+		nav.scrolled {
+		    top: 15px; width: calc(100% - 30px); max-width: 1200px; height: 70px; 
+		    background: rgba(245, 243, 236, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+		    padding: 0 40px; border-radius: 100px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255, 255, 255, 0.5);
+		}
+		nav.scrolled .logo-main { opacity: 0; transform: scale(0.6); pointer-events: none; }
+		nav.scrolled .logo-shrunk { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
+
+		.nav-cta {
+		  display: inline-flex; align-items: center; justify-content: center;
+		  padding: 11px 28px; border-radius: 100px; border: 1.5px solid var(--black); 
+		  background: transparent; font-size: 13px; font-weight: 500; font-family: var(--sans);
+		  color: var(--black); text-decoration: none; letter-spacing: 0.01em; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+		  position: relative; z-index: 1;
+		}
+		.nav-cta:hover { background: #8e43ac; border-color: #8e43ac; color: var(--white); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(142, 67, 172, 0.25), 0 6px 6px rgba(142, 67, 172, 0.1); }
+		nav.scrolled .nav-cta { padding: 9px 22px; font-size: 12px; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+
+		.social-icon { color: var(--black); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; }
+		.social-icon:hover { color: var(--purple); transform: translateY(-2px); }
+		nav.scrolled .social-icon { color: var(--black); }
+
+		footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 60px 6% 28px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; width: 100%; margin-top: 80px; }
+		.footer-logo img { height: 80px; width: auto; margin-left: -2px; display: block; }
+		.footer-tagline { font-size: 13px; color: var(--muted); }
+		.footer-links { display: flex; gap: 28px; align-items: center; }
+		.footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; }
+		.footer-links a:hover { color: var(--purple); transform: translateY(-2px); }
+		.footer-copy { font-size: 11px; color: rgba(0,0,0,0.2); grid-column: 1/-1; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.04); }
+
+		.page-container {
+			max-width: 800px;
+			margin: 180px auto 100px;
+			padding: 60px;
+			background: var(--white);
+			border-radius: var(--radius-lg);
+			box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+			border: 1px solid rgba(0,0,0,0.05);
+		}
+		.page-container h1 { font-family: var(--serif); font-size: 42px; margin-bottom: 10px; color: var(--black); }
+		.page-container .date { font-size: 14px; color: var(--muted); margin-bottom: 40px; display: block; }
+		.page-container h2 { font-family: var(--sans); font-size: 20px; font-weight: 600; margin: 32px 0 16px; color: var(--black); }
+		.page-container p { margin-bottom: 16px; color: var(--text); }
+		.page-container ul { margin-bottom: 24px; padding-left: 20px; color: var(--text); }
+		.page-container li { margin-bottom: 8px; }
+
+		@media (max-width: 768px) {
+			.page-container { margin: 140px 20px 60px; padding: 40px 20px; }
+			footer { grid-template-columns: 1fr; gap: 40px; }
+			.footer-links { flex-wrap: wrap; }
+		}
+	</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <a href="index.html" class="logo" aria-label="AntBox home">
+    <img src="https://drive.google.com/uc?export=view&amp;id=1fvJyfJJOrt28WvcJ2fu-F66QOR81EH28" class="logo-main" alt="AntBox"/>
+    <img src="imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" class="logo-shrunk" alt="AntBox Icon"/>
+  </a>
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <a href="https://www.linkedin.com/company/theantbox/posts/?feedView=all" target="_blank" aria-label="LinkedIn" class="social-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/the.antbox/" target="_blank" aria-label="Instagram" class="social-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </a>
+    <a href="https://script.google.com/macros/s/AKfycbz2OgAgve1LTWsuWpEmb5ChyvA1ZnI84nL5ak6hB10CtpB04Sts6hDsUWg0Tg0PxwSL-A/exec" target="_blank" class="nav-cta">Register Now →</a>
+  </div>
+</nav>
+
+<div class="page-container">
+	<h1>Privacy Policy</h1>
+	<span class="date">Effective Date: 1st February 2025</span>
+
+	<h2>1. Introduction</h2>
+	<p>Welcome to The Ant Box. Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your information when you visit our website <a href="https://theantbox.com/">https://theantbox.com/</a>.</p>
+
+	<h2>2. Information We Collect</h2>
+	<p>We may collect:</p>
+	<ul>
+		<li>Personal details (name, email, phone, address) when you interact with us.</li>
+		<li>Technical data (IP address, browser type) via cookies and analytics.</li>
+	</ul>
+
+	<h2>3. How We Use Your Information</h2>
+	<p>We use your information to:</p>
+	<ul>
+		<li>Process orders and provide customer support.</li>
+		<li>Improve our services and website.</li>
+		<li>Send promotional updates (if opted in).</li>
+	</ul>
+
+	<h2>4. Sharing Your Information</h2>
+	<p>We do not sell your data. We may share it with service providers for order fulfillment or when required by law.</p>
+
+	<h2>5. Data Security</h2>
+	<p>We implement security measures to protect your data but cannot guarantee absolute security.</p>
+
+	<h2>6. Your Rights</h2>
+	<p>You can request access, correction, or deletion of your data by contacting us.</p>
+
+	<h2>7. Third-Party Links</h2>
+	<p>We are not responsible for the privacy practices of linked third-party sites.</p>
+
+	<h2>8. Updates to This Policy</h2>
+	<p>We may update this policy and will post changes on this page.</p>
+</div>
+
+<footer>
+  <div>
+    <a href="index.html" class="footer-logo">
+      <img src="imgs/Ant-Box-BRAND-GUIDELINE-removebg-preview.png" alt="antbox logo" style="height: 100px; width: auto;"/>
+    </a>
+    <div class="footer-tagline">Future-proof talent infrastructure.</div>
+  </div>
+  <div>
+    <div class="footer-links">
+      <a href="about.html">About</a>
+      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=careers@theantbox.com" target="_blank">Contact</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="https://www.linkedin.com/company/theantbox/posts/?feedView=all" target="_blank" aria-label="LinkedIn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/the.antbox/" target="_blank" aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      </a>
+    </div>
+    <div class="footer-copy">© 2025 AntBox. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+const navbar = document.getElementById('navbar');
+let lastKnownScrollPosition = 0;
+let ticking = false;
+
+window.addEventListener('scroll', () => {
+  lastKnownScrollPosition = window.scrollY;
+
+  if (!ticking) {
+    window.requestAnimationFrame(() => {
+      if (lastKnownScrollPosition > 40) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+      ticking = false;
+    });
+    ticking = true;
+  }
+}, { passive: true });
+</script>
+</body>
+</html>
