@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Ant Box ERP</title>
-  <meta name="description" content="The Ant Box ERP workspace for operations, people, attendance, payroll, tasks, reports, and internal workflows.">
+  <meta name="description" content="The Ant Box ERP workspace for operations, people, attendance, tasks, reports, and team workflows.">
   <link rel="icon" href="/favicon.ico?v=7" sizes="any">
   <link rel="shortcut icon" href="/favicon.ico?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=7">
@@ -20,7 +20,7 @@
         <a class="brand" href="/erp" aria-label="The Ant Box ERP home">
           <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box logo mark">
           <div>
-            <span class="eyebrow">Internal Workspace</span>
+            <span class="eyebrow">The Ant Box</span>
             <strong>The Ant Box ERP</strong>
           </div>
         </a>
@@ -35,25 +35,17 @@
         <button class="nav-link" type="button" data-view-target="people">People</button>
         <button class="nav-link" type="button" data-view-target="attendance">Attendance</button>
         <button class="nav-link" type="button" data-view-target="tasks">Tasks</button>
-        <button class="nav-link" type="button" data-view-target="payroll">Payroll</button>
         <button class="nav-link" type="button" data-view-target="reports">Reports</button>
         <button class="nav-link" type="button" data-view-target="workspace">Workspace</button>
       </nav>
 
-      <div class="sidebar-foot">
-        <p>Operations, people, and payroll in one fast route.</p>
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          Route: /erp
-        </div>
-      </div>
     </aside>
 
     <main class="main-panel">
       <header class="topbar">
         <div>
           <p class="eyebrow">The Ant Box ERP</p>
-          <h1>Daily operations, team visibility, and payroll control.</h1>
+          <h1>Operations center for people, attendance, tasks, and reporting.</h1>
         </div>
 
         <div class="topbar-actions">
@@ -63,23 +55,34 @@
           </label>
           <div class="topbar-badge">
             <span class="status-dot"></span>
-            Live workspace
+            System active
           </div>
         </div>
       </header>
 
       <section class="hero-card panel-view is-visible" data-view="overview">
         <div class="hero-copy">
-          <span class="section-tag">Operations Dashboard</span>
-          <h2>Keep team updates, attendance, payouts, and approvals in one clean internal view.</h2>
-          <p>
-            This route is built as a standalone ERP workspace so it can be deployed directly under
-            <code>/erp</code> without changing the public marketing site.
-          </p>
+          <span class="section-tag">Overview</span>
+          <h2>Unified control across hiring, attendance, delivery, and operational reporting.</h2>
+
+          <div class="hero-highlights">
+            <div class="hero-highlight">
+              <span>Approvals</span>
+              <strong>11 pending decisions</strong>
+            </div>
+            <div class="hero-highlight">
+              <span>Execution</span>
+              <strong>19 open tasks across 4 teams</strong>
+            </div>
+            <div class="hero-highlight">
+              <span>Visibility</span>
+              <strong>Live attendance and department snapshots</strong>
+            </div>
+          </div>
 
           <div class="hero-actions">
-            <button class="button button-primary" type="button" data-view-jump="people">Open people</button>
-            <button class="button button-secondary" type="button" data-view-jump="attendance">Open attendance</button>
+            <button class="button button-primary" type="button" data-view-jump="people">Employee directory</button>
+            <button class="button button-secondary" type="button" data-view-jump="reports">View reports</button>
           </div>
         </div>
 
@@ -93,8 +96,8 @@
             <strong id="clock-label">--:--</strong>
           </div>
           <div class="mini-stat">
-            <span>Next payroll run</span>
-            <strong>23 May, 5:00 PM</strong>
+            <span>Reports ready</span>
+            <strong>Attendance and task snapshots</strong>
           </div>
         </div>
       </section>
@@ -116,9 +119,9 @@
           <p>Leave, reimbursement, and onboarding items waiting.</p>
         </article>
         <article class="metric-card searchable">
-          <span>Payroll this cycle</span>
-          <strong>Rs 7.82L</strong>
-          <p>Current approved payout total for the month.</p>
+          <span>Open tasks</span>
+          <strong>19</strong>
+          <p>Active items across product, operations, sales, and finance.</p>
         </article>
       </section>
 
@@ -142,8 +145,8 @@
               <span>3 reimbursements need finance review</span>
             </li>
             <li>
-              <strong>Payroll exceptions</strong>
-              <span>2 bank detail confirmations pending</span>
+              <strong>Attendance exceptions</strong>
+              <span>2 missed checkouts need review</span>
             </li>
           </ul>
         </article>
@@ -164,7 +167,7 @@
             </li>
             <li>
               <strong>Finance</strong>
-              <span>generated 42 salary slips for the May cycle</span>
+              <span>closed monthly attendance reconciliation</span>
             </li>
             <li>
               <strong>Anushka Das</strong>
@@ -176,13 +179,13 @@
         <article class="card searchable">
           <div class="card-head">
             <h3>Quick links</h3>
-            <span class="pill">Internal</span>
+            <span class="pill">Shortcuts</span>
           </div>
           <div class="action-grid">
             <button class="soft-button" type="button" data-view-jump="people">Employee directory</button>
             <button class="soft-button" type="button" data-view-jump="attendance">Leave approvals</button>
             <button class="soft-button" type="button" data-view-jump="tasks">Task board</button>
-            <button class="soft-button" type="button" data-view-jump="payroll">Payroll cycle</button>
+            <button class="soft-button" type="button" data-view-jump="reports">Reports</button>
           </div>
         </article>
       </section>
@@ -234,7 +237,7 @@
                   <tr class="searchable">
                     <td>Neha Kapoor</td>
                     <td>Finance</td>
-                    <td>Payroll Associate</td>
+                    <td>Finance Associate</td>
                     <td><span class="status active">Active</span></td>
                   </tr>
                   <tr class="searchable">
@@ -404,63 +407,13 @@
               <span class="pill">5</span>
             </div>
             <div class="task-card searchable">
-              <strong>May stipend freeze</strong>
+              <strong>May cohort review freeze</strong>
               <p>Completed by Finance | 18 May</p>
             </div>
             <div class="task-card searchable">
               <strong>Offer letter format update</strong>
               <p>Completed by HR | 19 May</p>
             </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="module-page panel-view" data-view="payroll">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Payroll</p>
-            <h2>Salary cycle, stipends, and payout checks</h2>
-          </div>
-          <p class="section-copy">Track totals, exceptions, and upcoming release activity for the current cycle.</p>
-        </div>
-
-        <div class="grid split-layout">
-          <article class="card">
-            <div class="card-head">
-              <h3>Cycle summary</h3>
-              <span class="pill">May 2026</span>
-            </div>
-            <div class="stack-list">
-              <div class="searchable">
-                <span>Employee salaries</span>
-                <b>Rs 6.94L</b>
-              </div>
-              <div class="searchable">
-                <span>Intern stipends</span>
-                <b>Rs 64K</b>
-              </div>
-              <div class="searchable">
-                <span>Bonuses and reimbursements</span>
-                <b>Rs 24K</b>
-              </div>
-              <div class="searchable">
-                <span>Deductions</span>
-                <b>Rs 11K</b>
-              </div>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-head">
-              <h3>Release checklist</h3>
-              <span class="pill">Friday</span>
-            </div>
-            <ul class="check-list">
-              <li>42 salary slips generated</li>
-              <li>8 reimbursement claims pending validation</li>
-              <li>3 bank details awaiting confirmation</li>
-              <li>Intern stipend sheet ready for export</li>
-            </ul>
           </article>
         </div>
       </section>
@@ -547,7 +500,7 @@
         <div class="section-header">
           <div>
             <p class="eyebrow">Workspace</p>
-            <h2>Internal structure and shared resources</h2>
+            <h2>Access structure and shared resources</h2>
           </div>
           <p class="section-copy">Reference view for access groups, documents, and operational ownership.</p>
         </div>
@@ -573,7 +526,7 @@
               </div>
               <div class="searchable">
                 <span>Employees</span>
-                <b>Profile, attendance, tasks, slips</b>
+                <b>Profile, attendance, and tasks</b>
               </div>
               <div class="searchable">
                 <span>Interns</span>
@@ -590,7 +543,7 @@
             <ul class="check-list">
               <li>Offer letter templates</li>
               <li>Attendance and leave exports</li>
-              <li>Payslip distribution tracker</li>
+              <li>Document and export tracker</li>
               <li>Intern cohort review sheets</li>
             </ul>
           </article>
@@ -607,7 +560,6 @@
             <span>departments</span>
             <span>attendance</span>
             <span>leave requests</span>
-            <span>payroll runs</span>
             <span>tasks</span>
             <span>documents</span>
             <span>activity logs</span>
