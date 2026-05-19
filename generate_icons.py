@@ -21,6 +21,13 @@ def generate_favicons(input_path):
         apple_img = new_img.resize((180, 180), Image.Resampling.LANCZOS)
         apple_img.save("apple-touch-icon.png", "PNG")
         
+        # Generate 32x32 and 16x16
+        favicon_32 = new_img.resize((32, 32), Image.Resampling.LANCZOS)
+        favicon_32.save("favicon-32x32.png", "PNG")
+        favicon_16 = new_img.resize((16, 16), Image.Resampling.LANCZOS)
+        favicon_16.save("favicon-16x16.png", "PNG")
+
+        
         # Generate android chrome icon (192x192)
         android_192 = new_img.resize((192, 192), Image.Resampling.LANCZOS)
         android_192.save("android-chrome-192x192.png", "PNG")
