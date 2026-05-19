@@ -98,13 +98,15 @@ img {
 }
 
 .brand img {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
-  border-radius: 14px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.75);
+  object-position: center;
+  border-radius: 16px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(17, 17, 17, 0.06);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
 }
 
 .brand strong {
