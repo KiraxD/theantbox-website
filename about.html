@@ -105,6 +105,7 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15
 			</style>
 </head>
 <body class="home page-template-default page page-id-167 wp-embed-responsive hello-elementor-default elementor-default elementor-kit-121 elementor-page elementor-page-167">
+<div class="body-glow"></div>
 
 
 <a class="skip-link screen-reader-text" href="#content">Skip to content</a>
@@ -160,11 +161,10 @@ body {
   font-family: var(--sans);
   background-color: var(--beige);
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(92, 61, 181, 0.06) 0%, transparent 50%),
     radial-gradient(circle at 100% 40%, rgba(92, 61, 181, 0.04) 0%, transparent 40%),
     radial-gradient(rgba(92, 61, 181, 0.015) 1.5px, transparent 1.5px);
-  background-size: 100% 100%, 100% 100%, 24px 24px;
-  background-attachment: scroll, scroll, fixed;
+  background-size: 100% 100%, 24px 24px;
+  background-attachment: scroll, fixed;
   color: var(--text);
   line-height: 1.6;
   overflow-x: hidden;
@@ -972,6 +972,28 @@ footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 60px 6% 28px; display:
 }
 
 
+.body-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(
+    700px circle at var(--mouse-x, 50%) var(--mouse-y, 30%), 
+    rgba(92, 61, 181, 0.22) 0%, 
+    rgba(92, 61, 181, 0.08) 35%,
+    rgba(92, 61, 181, 0.02) 60%,
+    transparent 80%
+  );
+  will-change: background;
+  transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.body-glow.active {
+  transition: none;
+}
 </style>
 
 
@@ -1120,6 +1142,46 @@ window.addEventListener('scroll', () => {
     ticking = true;
   }
 }, { passive: true });
+
+// ── INTERACTIVE BODY SPOTLIGHT GLOW ──
+const bodyGlow = document.querySelector('.body-glow');
+
+if (bodyGlow) {
+  let isMoving = false;
+  let mouseEvent = null;
+
+  const updateGlowPosition = () => {
+    if (!mouseEvent) {
+      isMoving = false;
+      return;
+    }
+    
+    bodyGlow.style.setProperty('--mouse-x', `${mouseEvent.clientX}px`);
+    bodyGlow.style.setProperty('--mouse-y', `${mouseEvent.clientY}px`);
+    
+    isMoving = false;
+  };
+
+  document.addEventListener('mousemove', (e) => {
+    mouseEvent = e;
+    if (!isMoving) {
+      bodyGlow.classList.add('active');
+      window.requestAnimationFrame(updateGlowPosition);
+      isMoving = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseenter', () => {
+    bodyGlow.classList.add('active');
+  });
+
+  document.addEventListener('mouseleave', () => {
+    bodyGlow.classList.remove('active');
+    bodyGlow.style.removeProperty('--mouse-x');
+    bodyGlow.style.removeProperty('--mouse-y');
+    mouseEvent = null;
+  });
+}
 </script>
 </body>
 </html>
