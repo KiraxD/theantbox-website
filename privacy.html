@@ -7,11 +7,13 @@
 	<link href="css/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet"/>
 	<style>
 		:root {
-		  --beige: #f5f3ec;
-		  --beige-dark: #eceade;
-		  --purple: #8e43ac;
-		  --purple-light: rgba(142,67,172,0.08);
-		  --purple-mid: rgba(142,67,172,0.15);
+		  --beige: #faf9f6; /* Premium ivory paper white */
+		  --beige-dark: #f2efe7; /* Soft mid cream */
+		  --purple: #5c3db5; /* Sophisticated corporate violet */
+		  --purple-light: rgba(92, 61, 181, 0.08);
+		  --purple-mid: rgba(92, 61, 181, 0.15);
+		  --purple-shadow: rgba(92, 61, 181, 0.25);
+		  --purple-shadow-light: rgba(92, 61, 181, 0.1);
 		  --black: #111111;
 		  --text: #2a2a2a;
 		  --muted: #666666;
@@ -28,7 +30,13 @@
 
 		body {
 		  font-family: var(--sans);
-		  background: var(--beige);
+		  background-color: var(--beige);
+		  background-image: 
+		    radial-gradient(circle at 50% 0%, rgba(92, 61, 181, 0.06) 0%, transparent 50%),
+		    radial-gradient(circle at 100% 40%, rgba(92, 61, 181, 0.04) 0%, transparent 40%),
+		    radial-gradient(rgba(92, 61, 181, 0.015) 1.5px, transparent 1.5px);
+		  background-size: 100% 100%, 100% 100%, 24px 24px;
+		  background-attachment: scroll, scroll, fixed;
 		  color: var(--text);
 		  line-height: 1.6;
 		  overflow-x: hidden;
@@ -66,21 +74,79 @@
 
 		nav.scrolled {
 		    top: 15px; width: calc(100% - 30px); max-width: 1200px; height: 70px; 
-		    background: rgba(245, 243, 236, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-		    padding: 0 40px; border-radius: 100px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); border: 1px solid rgba(255, 255, 255, 0.5);
+		    background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+		    padding: 0 40px; border-radius: 100px; box-shadow: 0 12px 40px rgba(0,0,0,0.06); border: 1px solid rgba(0, 0, 0, 0.05);
 		}
 		nav.scrolled .logo-main { opacity: 0; transform: scale(0.6); pointer-events: none; }
 		nav.scrolled .logo-shrunk { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
 
 		.nav-cta {
-		  display: inline-flex; align-items: center; justify-content: center;
-		  padding: 11px 28px; border-radius: 100px; border: 1.5px solid var(--black); 
-		  background: transparent; font-size: 13px; font-weight: 500; font-family: var(--sans);
-		  color: var(--black); text-decoration: none; letter-spacing: 0.01em; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-		  position: relative; z-index: 1;
+		  display: inline-flex;
+		  align-items: center;
+		  justify-content: center;
+		  padding: 11px 28px; 
+		  border-radius: 100px;
+		  border: 1.5px solid var(--black); 
+		  background: transparent;
+		  font-size: 13px; 
+		  font-weight: 500; 
+		  font-family: var(--sans);
+		  color: var(--black); 
+		  text-decoration: none;
+		  letter-spacing: 0.01em;
+		  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+		  position: relative;
+		  overflow: hidden;
+		  z-index: 1;
 		}
-		.nav-cta:hover { background: #8e43ac; border-color: #8e43ac; color: var(--white); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(142, 67, 172, 0.25), 0 6px 6px rgba(142, 67, 172, 0.1); }
-		nav.scrolled .nav-cta { padding: 9px 22px; font-size: 12px; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+
+		.nav-cta::before {
+		  content: '';
+		  position: absolute;
+		  top: 0;
+		  left: 0;
+		  width: 100%;
+		  height: 100%;
+		  background: linear-gradient(135deg, var(--purple) 0%, #7e63d3 100%);
+		  z-index: -1;
+		  transform: scaleX(0);
+		  transform-origin: right;
+		  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+		  border-radius: 100px;
+		}
+
+		.nav-cta:hover::before {
+		  transform: scaleX(1);
+		  transform-origin: left;
+		}
+
+		.nav-cta:hover {
+		  border-color: var(--purple);
+		  color: var(--white) !important;
+		  transform: translateY(-3px) scale(1.02); 
+		  box-shadow: 0 12px 28px rgba(92, 61, 181, 0.25);
+		}
+
+		.nav-cta:active {
+		  transform: translateY(-1px) scale(0.98);
+		  box-shadow: 0 4px 8px rgba(92, 61, 181, 0.15);
+		}
+
+		.nav-cta span {
+		  display: inline-block;
+		  margin-left: 6px;
+		  transition: transform 0.3s var(--ease);
+		}
+
+		.nav-cta:hover span {
+		  transform: translateX(4px);
+		}
+
+		nav.scrolled .nav-cta {
+		  padding: 9px 22px;
+		  font-size: 12px;
+		  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); 
+		}
 
 		.social-icon { color: var(--black); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; }
 		.social-icon:hover { color: var(--purple); transform: translateY(-2px); }
@@ -141,7 +207,7 @@
     <a href="https://www.instagram.com/the.antbox/" target="_blank" aria-label="Instagram" class="social-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
     </a>
-    <a href="https://script.google.com/macros/s/AKfycbz2OgAgve1LTWsuWpEmb5ChyvA1ZnI84nL5ak6hB10CtpB04Sts6hDsUWg0Tg0PxwSL-A/exec" target="_blank" class="nav-cta">Register Now →</a>
+    <a href="https://script.google.com/macros/s/AKfycbz2OgAgve1LTWsuWpEmb5ChyvA1ZnI84nL5ak6hB10CtpB04Sts6hDsUWg0Tg0PxwSL-A/exec" target="_blank" class="nav-cta">Register Now <span>→</span></a>
   </div>
 </nav>
 
