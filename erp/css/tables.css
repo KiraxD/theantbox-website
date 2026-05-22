@@ -1,0 +1,266 @@
+/* ============================================================
+   THE ANT BOX ERP — TABLES.CSS
+   Data tables, pagination, sorting, responsive
+   ============================================================ */
+
+/* ── Table Container ──────────────────────────────────────── */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.85);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .table-container {
+  background: rgba(33, 30, 46, 0.90);
+}
+
+/* ── Table ────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* Header */
+.data-table thead tr {
+  border-bottom: 1px solid var(--line);
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  user-select: none;
+  background: rgba(245,243,236,0.5);
+}
+
+[data-theme="dark"] .data-table th {
+  background: rgba(255,255,255,0.03);
+}
+
+.data-table th:first-child { border-radius: var(--radius-lg) 0 0 0; }
+.data-table th:last-child  { border-radius: 0 var(--radius-lg) 0 0; }
+
+/* Sortable column */
+.data-table th.sortable {
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+
+.data-table th.sortable:hover { color: var(--black); }
+
+.data-table th.sort-asc::after  { content: ' ↑'; opacity: 0.6; }
+.data-table th.sort-desc::after { content: ' ↓'; opacity: 0.6; }
+
+/* Body */
+.data-table tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background var(--duration-fast);
+}
+
+.data-table tbody tr:last-child { border-bottom: 0; }
+
+.data-table tbody tr:hover {
+  background: rgba(142,67,172,0.03);
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+  background: rgba(142,67,172,0.07);
+}
+
+.data-table td {
+  padding: 14px 16px;
+  color: var(--text);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.data-table td:first-child { font-weight: 500; color: var(--black); }
+
+/* Checkbox column */
+.data-table .col-check { width: 40px; }
+.data-table .col-actions { width: 100px; text-align: right; }
+
+/* Cell helpers */
+.table-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-name-cell .name {
+  font-weight: 600;
+  color: var(--black);
+}
+
+.table-name-cell .sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.data-table tbody tr:hover .table-actions {
+  opacity: 1;
+}
+
+/* ── Table Toolbar ────────────────────────────────────────── */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.table-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.table-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Pagination ───────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(245,243,236,0.4);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+[data-theme="dark"] .pagination {
+  background: rgba(255,255,255,0.02);
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pagination-info strong {
+  color: var(--black);
+  font-weight: 600;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  background: none;
+}
+
+.page-btn:hover {
+  background: var(--beige-dark);
+  color: var(--black);
+  border-color: var(--line);
+}
+
+.page-btn.active {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  font-weight: 700;
+}
+
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-btn svg { width: 14px; height: 14px; }
+
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.page-size-select .select {
+  width: 70px;
+  font-size: 13px;
+  padding: 5px 28px 5px 10px;
+}
+
+/* ── Row Selection ────────────────────────────────────────── */
+.data-table tbody tr.is-selected {
+  background: var(--purple-light);
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--purple-light);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--purple-mid);
+  animation: fadeIn var(--duration-fast);
+}
+
+.bulk-actions-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--purple);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .data-table th,
+  .data-table td {
+    padding: 12px;
+  }
+
+  .table-actions {
+    opacity: 1;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

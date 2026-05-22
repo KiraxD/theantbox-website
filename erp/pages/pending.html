@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Under Review - The Ant Box ERP</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/darkmode.css">
+    <!-- Supabase -->
+    <script>
+      window.__ERP_CONFIG__ = { supabaseUrl: 'https://sojqbyjioukfchdmstnz.supabase.co', supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvanFieWppb3VrZmNoZG1zdG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDEwMDUsImV4cCI6MjA5NDg3NzAwNX0.UUxgLB33WK5sB5q8gY4bbgzMFrAMurU-_nh7qhAlb6w' };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .pending-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+            padding: var(--spacing-xl);
+        }
+        .pending-card {
+            background: var(--surface-main);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow-xl);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .pending-icon {
+            font-size: 48px;
+            color: var(--accent-color);
+            margin-bottom: var(--spacing-lg);
+        }
+    </style>
+</head>
+<body>
+    <div class="pending-container">
+        <div class="pending-card">
+            <div class="pending-icon">⏳</div>
+            <h1 class="heading-2">Account Under Review</h1>
+            <p class="text-secondary" style="margin: var(--spacing-md) 0 var(--spacing-xl);">
+                Your profile has been created successfully. A Super Admin or HR Manager needs to review and approve your account before you can access the ERP dashboard.
+            </p>
+            <button id="btn-logout" class="btn btn-primary" style="width: 100%;">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/pending.js"></script>
+</body>
+</html>

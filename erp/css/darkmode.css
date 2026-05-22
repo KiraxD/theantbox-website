@@ -1,0 +1,214 @@
+/* ============================================================
+   THE ANT BOX ERP — DARKMODE.CSS
+   Dark mode token overrides and component adjustments
+   ============================================================ */
+
+/* Dark mode transitions */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Override transition exclusions — don't animate transforms */
+.btn, .card, .stat-card, .nav-item, .modal, .drawer, .toast {
+  transition: all var(--duration-fast) var(--ease);
+}
+
+[data-theme="dark"] body {
+  background: var(--beige);
+  color: var(--text);
+}
+
+/* Sidebar */
+[data-theme="dark"] .sidebar {
+  background: rgba(26, 24, 37, 0.95);
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* Topbar */
+[data-theme="dark"] .topbar {
+  background: rgba(26, 24, 37, 0.92);
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* Cards */
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .card-flat {
+  background: rgba(33, 30, 46, 0.92);
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .card-footer {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* Buttons */
+[data-theme="dark"] .btn-secondary {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: rgba(255,255,255,0.13);
+}
+
+[data-theme="dark"] .btn-ghost:hover {
+  background: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .btn-icon,
+[data-theme="dark"] .topbar-icon-btn,
+[data-theme="dark"] .theme-toggle {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  color: var(--muted);
+}
+
+[data-theme="dark"] .btn-icon:hover,
+[data-theme="dark"] .topbar-icon-btn:hover,
+[data-theme="dark"] .theme-toggle:hover {
+  background: rgba(255,255,255,0.11);
+  color: var(--black);
+}
+
+/* Inputs */
+[data-theme="dark"] .input,
+[data-theme="dark"] .select,
+[data-theme="dark"] .textarea {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+[data-theme="dark"] .input:focus,
+[data-theme="dark"] .select:focus,
+[data-theme="dark"] .textarea:focus {
+  background: rgba(255,255,255,0.07);
+  border-color: var(--purple);
+}
+
+[data-theme="dark"] .search-input {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.10);
+}
+
+/* Table */
+[data-theme="dark"] .table-container {
+  background: rgba(33, 30, 46, 0.92);
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .data-table th {
+  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .data-table td {
+  border-color: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .pagination {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .page-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--black);
+}
+
+/* Badges */
+[data-theme="dark"] .badge-muted {
+  background: rgba(255,255,255,0.08);
+  color: var(--muted);
+}
+
+/* Tags */
+[data-theme="dark"] .tag {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.10);
+}
+
+/* Sidebar user */
+[data-theme="dark"] .sidebar-user:hover,
+[data-theme="dark"] .sidebar-brand:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+/* Dropdowns */
+[data-theme="dark"] .dropdown-item:hover {
+  background: rgba(255,255,255,0.07);
+}
+
+/* Kanban */
+[data-theme="dark"] .kanban-column-body {
+  background: rgba(255,255,255,0.03);
+}
+
+[data-theme="dark"] .task-card-item {
+  background: rgba(33, 30, 46, 0.95);
+  border-color: rgba(255,255,255,0.08);
+}
+
+/* File upload */
+[data-theme="dark"] .file-upload-area {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.12);
+}
+
+[data-theme="dark"] .file-upload-area:hover {
+  background: rgba(142,67,172,0.08);
+  border-color: var(--purple);
+}
+
+/* Skeleton */
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Auth panel */
+[data-theme="dark"] .auth-form-panel {
+  background: #1a1825;
+}
+
+/* Section headers in dark */
+[data-theme="dark"] .section-header {
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* Dividers */
+[data-theme="dark"] .divider,
+[data-theme="dark"] .sidebar-divider {
+  background: rgba(255,255,255,0.07);
+}
+
+/* Toggle switch text */
+[data-theme="dark"] .theme-icon-sun { display: none; }
+[data-theme="light"] .theme-icon-moon { display: none; }
+
+/* Topbar user */
+[data-theme="dark"] .topbar-user {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+
+[data-theme="dark"] .topbar-user:hover {
+  background: rgba(255,255,255,0.10);
+}
+
+/* Scrollbar dark */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+}

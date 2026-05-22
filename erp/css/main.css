@@ -1,0 +1,300 @@
+/* ============================================================
+   THE ANT BOX ERP — MAIN.CSS
+   Design tokens, reset, typography, base utilities
+   ============================================================ */
+
+/* ── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+
+/* ── Design Tokens ────────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --beige:            #faf9f6;
+  --beige-dark:       #f2efe7;
+  --beige-mid:        #f5f3ec;
+  --purple:           #5c3db5;
+  --purple-light:     rgba(92, 61, 181, 0.08);
+  --purple-mid:       rgba(92, 61, 181, 0.15);
+  --purple-dark:      #4a2d8f;
+  --black:            #111111;
+  --black-80:         rgba(17, 17, 17, 0.80);
+  --text:             #2a2a2a;
+  --muted:            #666666;
+  --muted-light:      #999999;
+  --white:            #ffffff;
+  --white-80:         rgba(255, 255, 255, 0.80);
+  --white-60:         rgba(255, 255, 255, 0.60);
+
+  /* Semantic colors */
+  --success:          #31b46b;
+  --success-bg:       rgba(49, 180, 107, 0.12);
+  --warning:          #f59e0b;
+  --warning-bg:       rgba(245, 158, 11, 0.12);
+  --danger:           #ef4444;
+  --danger-bg:        rgba(239, 68, 68, 0.12);
+  --info:             #3b82f6;
+  --info-bg:          rgba(59, 130, 246, 0.12);
+
+  /* Border & shadow */
+  --line:             rgba(17, 17, 17, 0.08);
+  --line-strong:      rgba(17, 17, 17, 0.14);
+  --shadow-xs:        0 2px 8px rgba(17, 17, 17, 0.04);
+  --shadow-sm:        0 4px 12px rgba(17, 17, 17, 0.06);
+  --shadow:           0 12px 40px rgba(0, 0, 0, 0.06);
+  --shadow-lg:        0 20px 60px rgba(0, 0, 0, 0.08);
+  --shadow-purple:    0 8px 32px rgba(92, 61, 181, 0.25);
+
+  /* Radius */
+  --radius-sm:        10px;
+  --radius:           16px;
+  --radius-lg:        24px;
+  --radius-xl:        32px;
+  --radius-full:      999px;
+
+  /* Typography */
+  --sans:             'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif:            'DM Serif Display', Georgia, serif;
+
+  /* Spacing scale */
+  --space-1:          4px;
+  --space-2:          8px;
+  --space-3:          12px;
+  --space-4:          16px;
+  --space-5:          20px;
+  --space-6:          24px;
+  --space-8:          32px;
+  --space-10:         40px;
+  --space-12:         48px;
+  --space-16:         64px;
+
+  /* Layout */
+  --sidebar-width:    272px;
+  --topbar-height:    72px;
+  --content-max:      1400px;
+
+  /* Transitions */
+  --ease:             cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:         cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast:    120ms;
+  --duration:         240ms;
+  --duration-slow:    400ms;
+
+  /* Z-index */
+  --z-dropdown:       100;
+  --z-modal:          200;
+  --z-toast:          300;
+  --z-overlay:        150;
+}
+
+/* ── Dark Mode Tokens ─────────────────────────────────────── */
+[data-theme="dark"] {
+  --beige:            #1a1825;
+  --beige-dark:       #16141f;
+  --beige-mid:        #1e1b2a;
+  --black:            #f0eeff;
+  --text:             #d4cfe8;
+  --muted:            #8b85a0;
+  --muted-light:      #6b6480;
+  --white:            #211e2e;
+  --white-80:         rgba(33, 30, 46, 0.80);
+  --white-60:         rgba(33, 30, 46, 0.60);
+  --line:             rgba(255, 255, 255, 0.08);
+  --line-strong:      rgba(255, 255, 255, 0.14);
+  --shadow:           0 20px 60px rgba(0, 0, 0, 0.30);
+  --shadow-lg:        0 32px 80px rgba(0, 0, 0, 0.40);
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--beige);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ── Typography ───────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+h1 { font-size: clamp(28px, 4vw, 48px); letter-spacing: -0.04em; }
+h2 { font-size: clamp(22px, 3vw, 36px); letter-spacing: -0.035em; }
+h3 { font-size: 20px; }
+h4 { font-size: 17px; }
+
+.serif { font-family: var(--serif); }
+
+p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple);
+}
+
+.text-sm   { font-size: 13px; }
+.text-xs   { font-size: 11px; }
+.text-muted{ color: var(--muted); }
+.text-black{ color: var(--black); }
+.text-purple { color: var(--purple); }
+.text-success{ color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning{ color: var(--warning); }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+
+/* ── Accessibility ────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Utility Classes ──────────────────────────────────────── */
+.flex          { display: flex; }
+.flex-col      { flex-direction: column; }
+.items-center  { align-items: center; }
+.items-start   { align-items: flex-start; }
+.justify-between { justify-content: space-between; }
+.justify-center  { justify-content: center; }
+.gap-1  { gap: var(--space-1); }
+.gap-2  { gap: var(--space-2); }
+.gap-3  { gap: var(--space-3); }
+.gap-4  { gap: var(--space-4); }
+.gap-6  { gap: var(--space-6); }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+
+.grid { display: grid; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.mt-2  { margin-top: var(--space-2); }
+.mt-4  { margin-top: var(--space-4); }
+.mt-6  { margin-top: var(--space-6); }
+.mb-4  { margin-bottom: var(--space-4); }
+.mb-6  { margin-bottom: var(--space-6); }
+
+.p-4  { padding: var(--space-4); }
+.p-6  { padding: var(--space-6); }
+.px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+
+.truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rounded    { border-radius: var(--radius); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+.border  { border: 1px solid var(--line); }
+.shadow  { box-shadow: var(--shadow); }
+.shadow-sm { box-shadow: var(--shadow-sm); }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+
+.hidden { display: none !important; }
+.invisible { visibility: hidden; }
+.pointer-none { pointer-events: none; }
+
+/* ── Scrollbar Styling ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-light);
+}
+
+/* ── Page Background Pattern ──────────────────────────────── */
+.page-bg {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(142, 67, 172, 0.07), transparent 35%),
+    radial-gradient(circle at 90% 100%, rgba(142, 67, 172, 0.04), transparent 30%),
+    var(--beige);
+}
+
+[data-theme="dark"] .page-bg {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(142, 67, 172, 0.12), transparent 35%),
+    radial-gradient(circle at 90% 100%, rgba(142, 67, 172, 0.08), transparent 30%),
+    var(--beige);
+}

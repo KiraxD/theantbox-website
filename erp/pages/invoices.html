@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoices & Billing — The Ant Box ERP</title>
+  <meta name="description" content="Generate invoices, manage client billing, and track business revenue.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.ico?v=7" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/erp/css/main.css">
+  <link rel="stylesheet" href="/erp/css/layout.css">
+  <link rel="stylesheet" href="/erp/css/components.css">
+  <link rel="stylesheet" href="/erp/css/forms.css">
+  <link rel="stylesheet" href="/erp/css/tables.css">
+  <link rel="stylesheet" href="/erp/css/modals.css">
+  <link rel="stylesheet" href="/erp/css/pages.css">
+  <link rel="stylesheet" href="/erp/css/darkmode.css">
+  <style>
+    /* Custom Print Layouts for High-Fidelity Invoices */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .modal-close, .print-btn-group {
+        display: none !important;
+      }
+    }
+    
+    .invoice-row-item {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1.2fr 1.2fr 40px;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .invoice-print-container {
+      background: var(--white);
+      color: var(--black);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      border: 1px solid var(--line);
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: var(--shadow);
+    }
+    [data-theme="dark"] .invoice-print-container {
+      background: #111;
+      color: #fff;
+    }
+    .invoice-print-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 40px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 24px;
+    }
+    .invoice-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .invoice-total-summary {
+      display: grid;
+      justify-content: end;
+      grid-template-columns: 160px 120px;
+      gap: 8px;
+      text-align: right;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+  <script>
+    window.__ERP_CONFIG__ = { supabaseUrl: 'https://sojqbyjioukfchdmstnz.supabase.co', supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvanFieWppb3VrZmNoZG1zdG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDEwMDUsImV4cCI6MjA5NDg3NzAwNX0.UUxgLB33WK5sB5q8gY4bbgzMFrAMurU-_nh7qhAlb6w' };
+    const t = localStorage.getItem('erp_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/erp/dashboard.html" class="sidebar-brand-link">
+        <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box" class="sidebar-brand-img">
+        <span class="sidebar-brand-name">AntBox ERP</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+                    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/erp/dashboard.html" class="nav-item">Dashboard</a>
+      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee">Employees</a>
+      <a href="/erp/pages/attendance.html" class="nav-item">Attendance</a>
+      <a href="/erp/pages/tasks.html" class="nav-item">Tasks</a>
+      <a href="/erp/pages/inventory.html" class="nav-item">Inventory</a>
+      <div class="nav-section-label" data-min-role="accountant">Finance</div>
+      <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr">Payroll</a>
+      <a href="/erp/pages/invoices.html" class="nav-item active" data-min-role="accountant">Invoices</a>
+      <div class="nav-section-label" data-min-role="manager">Analytics</div>
+      <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager">Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/erp/pages/settings.html" class="nav-item">Settings</a>
+    </nav>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-user">
+      <div class="avatar avatar-md avatar-purple" id="sidebar-avatar">?</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebar-user-name">Loading…</span>
+        <span class="sidebar-user-role" id="sidebar-user-role"></span>
+      </div>
+      <button class="btn btn-ghost btn-icon sidebar-logout" data-logout aria-label="Sign out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ─────────────────────────────────── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-icon-btn" id="sidebar-toggle" aria-label="Toggle sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-breadcrumb">
+          <span>Invoices</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+          <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="topbar-user" id="topbar-user" data-dropdown-trigger="user-menu">
+          <div class="avatar avatar-sm avatar-purple" id="topbar-avatar">?</div>
+          <span class="topbar-user-copy">
+            <span id="topbar-user-name">Loading</span>
+            <span class="topbar-user-role" id="topbar-user-role"></span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="/erp/pages/settings.html">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" data-logout>Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Invoices & Billings</h1>
+          <p class="page-desc">Issue quotes, track invoices, and monitor client receipts.</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-purple" id="btn-add-invoice">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Invoice
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Invoiced</span>
+          <strong class="stat-value" id="stat-total-invoiced">-</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Revenue Collected</span>
+          <strong class="stat-value" id="stat-revenue-collected" style="color: #1c8f52;">-</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Outstanding Receivables</span>
+          <strong class="stat-value" id="stat-outstanding" style="color: #b26b00;">-</strong>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="table-filters">
+        <div class="table-filter-group">
+          <div class="input-wrap search-input">
+            <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="input input-has-left" id="invoice-search" placeholder="Search number, client...">
+          </div>
+          <select class="select" id="invoice-status-filter">
+            <option value="">All Statuses</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent / Pending</option>
+            <option value="paid">Paid</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice Number</th>
+              <th>Client Name</th>
+              <th>Issued Date</th>
+              <th>Due Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th width="120" style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-tbody">
+            <!-- Renders via JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── Create Invoice Modal ────────────────────────────── -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3>Create New Invoice</h3>
+      <button class="modal-close" data-close-modal="invoice-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="invoice-form" class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="invoice_number">Invoice Number (Optional)</label>
+          <input type="text" id="invoice_number" name="invoice_number" class="input" placeholder="Auto-generated if blank">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="status">Initial Status</label>
+          <select id="status" name="status" class="select">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent / Outbox</option>
+            <option value="paid">Paid / Deposited</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="client_name">Client Name <span class="text-danger">*</span></label>
+          <input type="text" id="client_name" name="client_name" class="input" required placeholder="e.g. Acme Corp">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="client_email">Client Email</label>
+          <input type="email" id="client_email" name="client_email" class="input" placeholder="e.g. billing@acme.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="issued_date">Issued Date</label>
+          <input type="date" id="issued_date" name="issued_date" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="due_date">Due Date <span class="text-danger">*</span></label>
+          <input type="date" id="due_date" name="due_date" class="input" required>
+        </div>
+
+        <!-- Line Items Section -->
+        <div class="form-group span-2" style="border-top: 1px solid var(--line); padding-top:16px; margin-top:12px;">
+          <h4 style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+            Line Items
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-row" style="padding: 6px 12px; font-size:12px;">+ Add Line</button>
+          </h4>
+          <div id="invoice-rows-container">
+            <!-- Dynamic rows will render here -->
+          </div>
+        </div>
+
+        <!-- Calculations Summary -->
+        <div class="form-group span-2" style="display: flex; justify-content: flex-end; border-top: 1px solid var(--line); padding-top:16px;">
+          <div style="width: 320px; display: grid; grid-template-columns: 160px 140px; gap: 8px; text-align: right; align-items: center;">
+            <span style="font-weight: 500;">Subtotal:</span>
+            <span id="summary-subtotal" style="font-weight: 600;">$0.00</span>
+
+            <span style="font-weight: 500;"><label for="tax">Tax (+):</label></span>
+            <input type="number" id="tax" name="tax" class="input" min="0" step="0.01" value="0.00" style="text-align: right; padding: 4px 8px; height: 32px;">
+
+            <span style="font-weight: 500;"><label for="discount">Discount (-):</label></span>
+            <input type="number" id="discount" name="discount" class="input" min="0" step="0.01" value="0.00" style="text-align: right; padding: 4px 8px; height: 32px;">
+
+            <span style="font-weight: 700; font-size: 16px;">Grand Total:</span>
+            <span id="summary-total" style="font-weight: 700; font-size: 16px; color: var(--purple);">$0.00</span>
+          </div>
+        </div>
+
+        <div class="form-group span-2 flex justify-end mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="invoice-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Create Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Invoice Detail & Print Modal ────────────────────────────── -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 800px; padding: 20px;">
+    <div class="modal-header print-btn-group" style="border-bottom:none; margin-bottom:12px;">
+      <h3>Invoice Details</h3>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" id="btn-print-invoice" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Invoice
+        </button>
+        <button class="modal-close" data-close-modal="detail-modal" aria-label="Close" style="position:static;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-body" id="print-area">
+      <div class="invoice-print-container">
+        <!-- Header -->
+        <div class="invoice-print-header">
+          <div>
+            <h2 style="font-size:24px; font-family:var(--serif); margin:0 0 4px; color:var(--purple);">THE ANT BOX</h2>
+            <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted);">Studio & Operations</span>
+          </div>
+          <div style="text-align: right;">
+            <h1 style="font-size: 32px; font-family:var(--serif); margin:0 0 4px; font-weight:normal;" id="invoice-title-number">INV-XXXX</h1>
+            <span class="status active" id="invoice-detail-status">Draft</span>
+          </div>
+        </div>
+
+        <!-- Meta info -->
+        <div class="invoice-meta-grid">
+          <div>
+            <h4 style="margin: 0 0 8px; color:var(--muted); font-size:12px; text-transform:uppercase;">Invoice From</h4>
+            <strong id="invoice-from-name">The Ant Box Studio</strong><br>
+            <span id="invoice-from-email" style="font-size:13px; color:var(--muted);">ops@theantbox.com</span>
+          </div>
+          <div>
+            <h4 style="margin: 0 0 8px; color:var(--muted); font-size:12px; text-transform:uppercase;">Invoice To</h4>
+            <strong id="invoice-to-name">-</strong><br>
+            <span id="invoice-to-email" style="font-size:13px; color:var(--muted);">-</span>
+          </div>
+          <div>
+            <h4 style="margin: 0 0 4px; color:var(--muted); font-size:12px; text-transform:uppercase;">Date Issued</h4>
+            <span id="invoice-date-issued" style="font-weight:500;">-</span>
+          </div>
+          <div>
+            <h4 style="margin: 0 0 4px; color:var(--muted); font-size:12px; text-transform:uppercase;">Due Date</h4>
+            <span id="invoice-date-due" style="font-weight:500;">-</span>
+          </div>
+        </div>
+
+        <!-- Line items table -->
+        <table class="data-table" style="margin-bottom: 24px;">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th width="80" style="text-align: right;">Qty</th>
+              <th width="120" style="text-align: right;">Unit Price</th>
+              <th width="120" style="text-align: right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="invoice-items-detail-tbody">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+
+        <!-- Totals summary -->
+        <div class="invoice-total-summary">
+          <span>Subtotal:</span>
+          <span id="invoice-detail-subtotal">$0.00</span>
+          
+          <span>Tax:</span>
+          <span id="invoice-detail-tax">$0.00</span>
+          
+          <span>Discount:</span>
+          <span id="invoice-detail-discount">$0.00</span>
+          
+          <span style="font-weight: 700; font-size: 16px; border-top: 2px solid var(--black); padding-top:8px;">Grand Total:</span>
+          <span id="invoice-detail-total" style="font-weight: 700; font-size: 16px; color: var(--purple); border-top: 2px solid var(--black); padding-top:8px;">$0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script type="module" src="/erp/js/invoices.js"></script>
+</body>
+</html>

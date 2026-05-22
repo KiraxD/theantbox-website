@@ -1,0 +1,29 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/erp",
+      "destination": "/erp/index.html"
+    },
+    {
+      "source": "/erp/dashboard",
+      "destination": "/erp/dashboard.html"
+    },
+    {
+      "source": "/erp/pages/:path*",
+      "destination": "/erp/pages/:path*.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — The Ant Box ERP</title>
+  <meta name="description" content="The Ant Box ERP dashboard — headcount, attendance, tasks, payroll overview.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.ico?v=7" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/erp/css/main.css">
+  <link rel="stylesheet" href="/erp/css/layout.css">
+  <link rel="stylesheet" href="/erp/css/components.css">
+  <link rel="stylesheet" href="/erp/css/tables.css">
+  <link rel="stylesheet" href="/erp/css/modals.css">
+  <link rel="stylesheet" href="/erp/css/pages.css">
+  <link rel="stylesheet" href="/erp/css/darkmode.css">
+  <!-- ApexCharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+  <script>
+    window.__ERP_CONFIG__ = {
+      supabaseUrl: 'https://sojqbyjioukfchdmstnz.supabase.co',
+      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvanFieWppb3VrZmNoZG1zdG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDEwMDUsImV4cCI6MjA5NDg3NzAwNX0.UUxgLB33WK5sB5q8gY4bbgzMFrAMurU-_nh7qhAlb6w',
+    };
+    const t = localStorage.getItem('erp_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body>
+
+<!-- ── App Shell ───────────────────────────────────────────── -->
+<div class="app-shell" id="app-shell">
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+
+    <div class="sidebar-brand">
+      <a href="/erp/dashboard.html" class="sidebar-brand-link">
+        <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box" class="sidebar-brand-img">
+        <span class="sidebar-brand-name">AntBox ERP</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+        <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/erp/dashboard.html" class="nav-item active">Dashboard</a>
+      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee">Employees</a>
+      <a href="/erp/pages/attendance.html" class="nav-item">Attendance</a>
+      <a href="/erp/pages/tasks.html" class="nav-item">Tasks</a>
+      <a href="/erp/pages/inventory.html" class="nav-item">Inventory</a>
+      <div class="nav-section-label" data-min-role="accountant">Finance</div>
+      <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr">Payroll</a>
+      <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="accountant">Invoices</a>
+      <div class="nav-section-label" data-min-role="manager">Analytics</div>
+      <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager">Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/erp/pages/settings.html" class="nav-item">Settings</a>
+    </nav>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-user">
+      <div class="avatar avatar-md avatar-purple" id="sidebar-avatar">?</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebar-user-name">Loading…</span>
+        <span class="sidebar-user-role" id="sidebar-user-role"></span>
+      </div>
+      <button class="btn btn-ghost btn-icon sidebar-logout" data-logout aria-label="Sign out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ─────────────────────────────────── -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <div class="topbar-left">
+        <button class="topbar-icon-btn" id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-breadcrumb">
+          <span>Dashboard</span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Theme toggle -->
+        <button class="topbar-icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+          <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <!-- Notifications -->
+        <div class="notif-wrap" style="position:relative;">
+          <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notif-panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+          </button>
+          <div class="notif-panel" id="notif-panel" aria-label="Notification panel" aria-hidden="true">
+            <div class="notif-panel-header">
+              <span>Notifications</span>
+              <button class="btn btn-ghost btn-sm" id="notif-mark-read" type="button">Mark all read</button>
+            </div>
+            <div class="notif-panel-body" id="notif-panel-body">
+              <p class="text-muted text-center text-sm p-4">No new notifications</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- User menu -->
+        <button class="topbar-user" id="topbar-user" data-dropdown-trigger="user-menu" aria-label="User menu">
+          <div class="avatar avatar-sm avatar-purple" id="topbar-avatar">?</div>
+          <span class="topbar-user-copy">
+            <span id="topbar-user-name">Loading</span>
+            <span class="topbar-user-role" id="topbar-user-role"></span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown-menu" id="user-menu" role="menu">
+          <a class="dropdown-item" href="/erp/pages/settings.html" role="menuitem">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" data-logout role="menuitem">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Page Content ──────────────────────────────── -->
+    <main class="page-content" id="main-content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header-copy">
+          <p class="dashboard-welcome" id="dashboard-welcome">Good morning 👋</p>
+          <div class="dashboard-meta">
+            <p class="dashboard-date" id="today-date"></p>
+            <span class="badge badge-purple dashboard-role" id="dashboard-role">Loading role</span>
+          </div>
+        </div>
+        <div class="page-header-actions">
+          <a href="/erp/pages/attendance.html" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Clock In / Out
+          </a>
+          <a href="/erp/pages/tasks.html" class="btn btn-purple">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Task
+          </a>
+        </div>
+      </div>
+
+      <!-- ── KPI Cards ─────────────────────────────── -->
+      <div class="kpi-grid" id="kpi-grid">
+        <!-- Headcount -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Total Headcount</span>
+            <div class="stat-card-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="kpi-headcount">—</div>
+          <div class="stat-card-sub">
+            <span id="kpi-active-emp" class="text-success">— active</span>
+            <div id="spark-emp" class="sparkline-wrap"></div>
+          </div>
+        </div>
+
+        <!-- Attendance -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Today's Attendance</span>
+            <div class="stat-card-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="kpi-attendance">—%</div>
+          <div class="stat-card-sub">
+            <span id="kpi-attendance-sub" class="text-muted">— present</span>
+            <div id="spark-attend" class="sparkline-wrap"></div>
+          </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Active Tasks</span>
+            <div class="stat-card-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="kpi-tasks">—</div>
+          <div class="stat-card-sub">
+            <span id="kpi-tasks-sub" class="text-danger">— overdue</span>
+            <div id="spark-tasks" class="sparkline-wrap"></div>
+          </div>
+        </div>
+
+        <!-- Payroll -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Monthly Payroll</span>
+            <div class="stat-card-icon yellow">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="kpi-payroll">—</div>
+          <div class="stat-card-sub">
+            <span id="kpi-payroll-sub" class="text-muted">— employees</span>
+            <div id="spark-payroll" class="sparkline-wrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Charts + Activity row ──────────────────── -->
+      <div class="grid-2-1" style="gap:20px;margin-bottom:20px;">
+
+        <!-- Attendance chart -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Attendance Trend</h3>
+            <span class="card-sub">Last 7 days</span>
+          </div>
+          <div class="chart-card-body">
+            <div id="chart-attendance"></div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+          <div class="card-body">
+            <ul class="activity-list" id="activity-list">
+              <li class="activity-item" style="justify-content:center;">
+                <div class="skeleton" style="height:14px;width:60%;border-radius:6px;"></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Charts row 2 ───────────────────────────── -->
+      <div class="grid-3-col" style="gap:20px;margin-bottom:20px;">
+
+        <!-- Task status -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Task Status</h3>
+          </div>
+          <div class="chart-card-body">
+            <div id="chart-tasks"></div>
+          </div>
+        </div>
+
+        <!-- Dept headcount -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Dept. Headcount</h3>
+          </div>
+          <div class="chart-card-body">
+            <div id="chart-dept"></div>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+          </div>
+          <div class="card-body">
+            <div class="quick-links">
+              <a href="/erp/pages/employees.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Add Employee
+              </a>
+              <a href="/erp/pages/attendance.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Clock In
+              </a>
+              <a href="/erp/pages/tasks.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Task
+              </a>
+              <a href="/erp/pages/payroll.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Payroll
+              </a>
+              <a href="/erp/pages/reports.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Reports
+              </a>
+              <a href="/erp/pages/interns.html" class="quick-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
+                Interns
+              </a>
+            </div>
+
+            <div class="divider" style="margin: 16px 0;"></div>
+
+            <div class="flex-col gap-2">
+              <div class="flex-between">
+                <span class="text-sm text-muted">Pending Approvals</span>
+                <span class="badge badge-warning" id="kpi-pending">—</span>
+              </div>
+              <div class="flex-between">
+                <span class="text-sm text-muted">Active Interns</span>
+                <span class="badge badge-info" id="kpi-interns">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Today's Live Attendance (HR/Admin only) ──────────── -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <h3 class="card-title">Today's Attendance — Live</h3>
+          <span class="card-sub" style="font-size:12px; color:var(--muted);">Real-time · IST</span>
+        </div>
+        <div class="card-body" id="live-attendance-panel">
+          <p class="text-muted text-center" style="padding:20px;">Loading attendance data…</p>
+        </div>
+      </div>
+
+      <!-- ── Leave Requests / Approvals ───────────────────────── -->
+      <div class="card" id="leaves-card">
+        <div class="card-header">
+          <h3 class="card-title" id="leaves-card-title">Leave Approvals</h3>
+          <a href="/erp/pages/attendance.html" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body">
+          <ul class="activity-list" id="approvals-list">
+            <li class="approval-empty">Loading…</li>
+          </ul>
+        </div>
+      </div>
+
+    </main><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<script type="module" src="/erp/js/dashboard.js"></script>
+</body>
+</html>

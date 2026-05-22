@@ -1,0 +1,83 @@
+AntBox QR Attendance System - Technical Overview
+
+1. Project Overview & Purpose
+--------------------------------
+This is a serverless, QR-powered Digital ID and Entry Logging system. It is designed to act as an attendance or access control system where users (students, staff, faculty) are issued unique QR codes. When scanned via a web-based camera interface, the system records their entry (IN) or exit (OUT) in real-time.
+
+2. Technology Stack
+--------------------------------
+The project is built entirely on the Google Workspace ecosystem, which allows it to run without a traditional dedicated server or database hosting costs.
+
+* Backend / API: Google Apps Script (JavaScript-based)
+* Database: Google Sheets (acts as the relational database)
+* File Storage: Google Drive (stores the generated QR code PNG images)
+* Frontend UI: HTML5, CSS3, Vanilla JavaScript
+* External Libraries:
+  - html5-qrcode (via CDN) for accessing device cameras and parsing QR codes directly in the browser.
+  - Chart.js for rendering analytics on the Admin Dashboard.
+  - api.qrserver.com for generating the actual QR code images.
+
+3. System Architecture & File Structure
+--------------------------------
+The architecture follows a standard client-server model, but Google Apps Script acts as the server.
+
+[User's Phone Camera] --> scanner.html (html5-qrcode)
+                              |  (Sends QR Payload)
+                              v
+                       [Google Apps Script (Backend)]
+                              |
+                    +---------+---------+
+                    v                   v
+              [Google Sheets]        [Google Drive]
+            (Database / Logs)    (Image Storage)
+
+The Codebase Breakdown (google-apps-script/ directory):
+
+* Code.gs: The main router and utility file. It handles doGet() to serve the HTML pages (scanner vs. admin) and contains the logic to generate QR codes via an external API and save those image files to a specific Google Drive folder.
+* Validation.gs: The core business logic engine. When a scan happens, this script handles validating the user, determining if they are clocking IN or OUT, preventing duplicate rapid scans, and safely writing the log to Google Sheets.
+* Setup.gs: An initialization script. It runs once to set up the Google Sheets (creating the Users, Logs, and Summary tabs), inject sample data, and create a custom menu in the Google Sheets UI for admins.
+* scanner.html: The frontend UI for the scanning station. It requests camera permissions, decodes the QR using html5-qrcode, and sends the payload to the backend.
+* admin.html: The frontend dashboard for administrators. It reads data from the Sheets and displays KPI cards (Total IN, Total OUT), charts, and a log feed.
+* styles.html: A centralized CSS file containing a modern dark-theme aesthetic, injected into the other HTML files.
+
+4. Core Workflows & Technical Logic
+--------------------------------
+
+A. How QR Codes are Generated
+1. When an admin triggers generation, the backend builds a JSON payload for a user containing their uid, name, role, and an MD5-based checksum.
+2. The JSON payload is URL-encoded and sent to an external QR generation API (api.qrserver.com).
+3. The backend downloads the resulting PNG image using UrlFetchApp.
+4. The PNG is saved to a specific Google Drive folder (QR_Attendance_Codes/).
+5. The sharing permissions are set to "Anyone with link can view", and the link is saved into the Users tab of the Google Sheet.
+
+B. The Scanning & Validation Process
+1. Client-Side (Scanner): The camera decodes the QR at ~15 frames per second. If it sees a QR, it implements a 2-second debounce (ignoring the same code for 2 seconds so it doesn't spam the server). It parses the JSON and sends it to the backend via google.script.run.
+2. Server-Side (Validation.gs):
+   - Lock Acquisition: It immediately requests LockService.getScriptLock(). This ensures that if 10 people scan at the exact same millisecond, the scripts execute one by one, preventing database corruption.
+   - Lookup: It checks if the uid exists in the Users sheet.
+   - Duplicate Check: It checks the last 20 rows of the Logs sheet. If this exact user scanned less than 30 seconds ago, it rejects the scan as a DUPLICATE_SCAN.
+   - IN/OUT Toggle Detection: It looks at the user's last recorded status. If their last scan was IN, this scan is logged as OUT, and vice versa.
+   - Write & Release: It appends a new row to the Logs sheet, updates the Summary sheet stats, releases the lock, and returns a success message to the UI.
+
+C. Database Structure (Google Sheets)
+The database is normalized across three main tabs:
+* Users: UserID | Name | Email | Role | QR_DriveLink | CreatedAt
+* Logs: LogID | UserID | Name | Timestamp | Status (IN/OUT) | ScanSource (Device info)
+* Summary: Date | TotalIN | TotalOUT | UniqueUsers (Aggregated KPIs)
+
+5. Handling Concurrency and Scaling (The "500 Users" Problem)
+--------------------------------
+Because Google Sheets is not a traditional SQL database, concurrent writes can cause data loss or overwriting. The project solves this elegantly:
+
+1. LockService: Forces concurrent requests to wait in line (up to 8 seconds).
+2. Atomic Appends: By using sheet.appendRow(), the system never tries to read, modify, and rewrite the same row at the same time. It only ever adds new rows to the bottom.
+3. Graceful Timeouts: If the server is genuinely overwhelmed and the 8-second lock times out, it gracefully returns a SERVER_BUSY error to the frontend, prompting the user to simply scan again.
+4. Client Debouncing: The frontend itself refuses to send duplicate requests within 2 seconds.
+
+*Note for Enterprise Scaling:* Google Apps Script limits concurrent executions to about 30 at a time. If the system scales beyond hundreds of simultaneous scans, the backend would need to be migrated to Node.js with Firebase Realtime Database/Firestore.
+
+6. Security Posture
+--------------------------------
+* No Sequential/Predictable IDs: User IDs are structured safely (e.g., USR-2024-0001).
+* Checksum Verification: The JSON inside the QR code has a checksum to prevent basic tampering.
+* Server-Side Authority: The client/scanner is never trusted to say if a user is clocking "IN" or "OUT". The server calculates this dynamically based on the database history to prevent spoofing.

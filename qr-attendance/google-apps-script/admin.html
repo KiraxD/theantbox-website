@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Attendance — Admin Dashboard</title>
+  <?!= include('styles') ?>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- ── HEADER ───────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon" style="background:transparent; width:auto; height:auto; display:flex;">
+          <img src="https://i.ibb.co/LDcYCyy3/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="AntBox Logo" style="height: 36px; object-fit: contain;">
+        </div>
+        <div>
+          <h1 class="logo-title">Admin Dashboard</h1>
+          <p class="logo-sub">QR Attendance Management</p>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="<?= ScriptApp.getService().getUrl() ?>?page=scanner" class="nav-btn" target="_top">📷 Scanner</a>
+        <a href="<?= ScriptApp.getService().getUrl() ?>?page=admin"   class="nav-btn active" target="_top">🛠 Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── MAIN CONTENT ──────────────────────────────────────────────────── -->
+  <main class="admin-main">
+
+    <!-- KPI Cards -->
+    <section class="kpi-grid">
+
+      <!-- Total Users -->
+      <div class="kpi-card">
+        <div class="kpi-icon-box" style="background:#F3F0FB;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4" fill="#7C5C9C"/>
+            <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#7C5C9C" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value" id="kpiTotalUsers">—</span>
+          <span class="kpi-label">Total Users</span>
+        </div>
+      </div>
+
+      <!-- Today IN -->
+      <div class="kpi-card">
+        <div class="kpi-icon-box" style="background:#E8F9EE;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="4" fill="#2EA043"/>
+            <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value" id="kpiTodayIn">—</span>
+          <span class="kpi-label">Today IN</span>
+        </div>
+      </div>
+
+      <!-- Today OUT -->
+      <div class="kpi-card">
+        <div class="kpi-icon-box" style="background:#FFF3E8;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="3" width="12" height="18" rx="2" fill="#D4845A"/>
+            <rect x="8" y="3" width="12" height="18" rx="2" fill="#C0734A" opacity="0.5"/>
+            <circle cx="14" cy="12" r="1.5" fill="white"/>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value" id="kpiTodayOut">—</span>
+          <span class="kpi-label">Today OUT</span>
+        </div>
+      </div>
+
+      <!-- Unique Today -->
+      <div class="kpi-card">
+        <div class="kpi-icon-box" style="background:#FEF0F5;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="#E0457B" stroke-width="2"/>
+            <circle cx="12" cy="12" r="5" stroke="#E0457B" stroke-width="2"/>
+            <circle cx="12" cy="12" r="2" fill="#E0457B"/>
+            <line x1="19" y1="5" x2="22" y2="2" stroke="#E0457B" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value" id="kpiUnique">—</span>
+          <span class="kpi-label">Unique Today</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Charts Row -->
+    <section class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Weekly Attendance</h3>
+        <canvas id="weeklyChart" height="140"></canvas>
+      </div>
+      <div class="chart-card chart-donut">
+        <h3 class="chart-title">Today's Status</h3>
+        <canvas id="donutChart" height="140"></canvas>
+      </div>
+    </section>
+
+    <!-- Add User Form -->
+    <section class="admin-card">
+      <h3 class="card-title">➕ Add New User</h3>
+      <form id="addUserForm" class="user-form" onsubmit="addNewUser(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="inpName" placeholder="e.g. Arjun Sharma" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="inpEmail" placeholder="user@college.edu">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="inpRole">
+              <option value="student">Student</option>
+              <option value="faculty">Faculty</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+          <div class="form-group form-btn-group">
+            <button type="submit" class="btn btn-primary" id="btnAddUser">Add & Generate QR</button>
+          </div>
+        </div>
+        <div id="addUserResult" class="form-result" style="display:none"></div>
+      </form>
+    </section>
+
+    <!-- Users Table -->
+    <section class="admin-card">
+      <div class="table-header">
+        <h3 class="card-title">👥 Registered Users</h3>
+        <button class="btn btn-ghost btn-sm" onclick="loadUsers()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>QR Code</th>
+              <th>Registered</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Logs Table -->
+    <section class="admin-card">
+      <div class="table-header">
+        <h3 class="card-title">📋 Attendance Logs</h3>
+        <div class="table-actions">
+          <input type="date" id="filterDate" class="date-filter" onchange="filterLogs()">
+          <button class="btn btn-ghost btn-sm" onclick="loadLogs()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="logsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>User ID</th>
+              <th>Name</th>
+              <th>Timestamp</th>
+              <th>Status</th>
+              <th>Device</th>
+            </tr>
+          </thead>
+          <tbody id="logsBody">
+            <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+  // ── DATA LOADING ──────────────────────────────────────────────────────────
+
+  let allLogs = [];
+
+  window.onload = function() {
+    loadUsers();
+    loadLogs();
+    loadSummary();
+  };
+
+  function loadUsers() {
+    document.getElementById('usersBody').innerHTML = '<tr><td colspan="6" class="table-empty">Loading...</td></tr>';
+    google.script.run
+      .withSuccessHandler(renderUsers)
+      .withFailureHandler(err => {
+        document.getElementById('usersBody').innerHTML =
+          `<tr><td colspan="6" class="table-empty" style="color:#d29922">⚠️ Failed to load users: ${err.message || err}</td></tr>`;
+      })
+      .getAllUsers();
+  }
+
+  function loadLogs() {
+    document.getElementById('logsBody').innerHTML = '<tr><td colspan="6" class="table-empty">Loading...</td></tr>';
+    google.script.run
+      .withSuccessHandler(result => {
+        allLogs = result.logs || [];
+        renderLogs(allLogs);
+      })
+      .withFailureHandler(err => {
+        document.getElementById('logsBody').innerHTML =
+          `<tr><td colspan="6" class="table-empty" style="color:#d29922">⚠️ Failed to load logs: ${err.message || err}</td></tr>`;
+      })
+      .getRecentLogs(100);
+  }
+
+  function loadSummary() {
+    google.script.run
+      .withSuccessHandler(renderSummary)
+      .withFailureHandler(err => console.warn('Summary load failed:', err))
+      .getAttendanceSummary();
+  }
+
+  // ── RENDERERS ─────────────────────────────────────────────────────────────
+
+  function renderUsers(result) {
+    const tbody = document.getElementById('usersBody');
+    try {
+      const users = (result && result.users) ? result.users : [];
+      document.getElementById('kpiTotalUsers').textContent = users.length;
+
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No users registered yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => {
+        // CreatedAt may come as a Date object (if Sheets auto-detected it), ISO string, or IST string
+        const createdRaw = u.CreatedAt;
+        const createdStr = createdRaw instanceof Date ? createdRaw.toISOString()
+                         : (createdRaw ? String(createdRaw) : '');
+        const role = (u.Role || 'student').toLowerCase();
+        return `<tr>
+          <td><code>${u.UserID || ''}</code></td>
+          <td><strong>${u.Name || ''}</strong></td>
+          <td>${u.Email || '—'}</td>
+          <td><span class="role-badge role-${role}">${u.Role || 'Student'}</span></td>
+          <td>${u.QR_DriveLink
+            ? `<a href="${u.QR_DriveLink}" target="_blank" class="qr-link">📎 View QR</a>`
+            : '<span class="no-qr">Not generated</span>'}</td>
+          <td>${formatDateTime(createdStr)}</td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="color:#f85149">❌ Render error: ${e.message}</td></tr>`;
+    }
+  }
+
+  function renderLogs(logs) {
+    const tbody = document.getElementById("logsBody");
+    if (!logs.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="table-empty">No logs found.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = logs.map((l, i) => `
+      <tr>
+        <td>${l.LogID || i + 1}</td>
+        <td><code>${l.UserID}</code></td>
+        <td>${l.Name}</td>
+        <td>${formatDateTime(l.Timestamp)}</td>
+        <td><span class="status-pill ${l.Status === "IN" ? "pill-in" : "pill-out"}">${l.Status}</span></td>
+        <td title="${l.ScanSource || ""}">${truncate(l.ScanSource || "web", 20)}</td>
+      </tr>
+    `).join("");
+  }
+
+  function renderSummary(result) {
+    if (!result) return;
+    
+    const summary = result.summary || [];
+    const metrics = result.todayMetrics || { todayIn: 0, todayOut: 0, uniqueToday: 0 };
+
+    document.getElementById("kpiTodayIn").textContent   = metrics.todayIn;
+    document.getElementById("kpiTodayOut").textContent  = metrics.todayOut;
+    document.getElementById("kpiUnique").textContent    = metrics.uniqueToday;
+
+    // We ALSO re-compute the daily breakdown for the chart using result.logs
+    // Actually, `summary` already contains daily breakdown, let's use it for the Weekly chart
+    const last7 = summary.slice(-7);
+    renderWeeklyChart(last7);
+    renderDonutChart(metrics.todayIn, metrics.todayOut);
+  }
+
+  // ── CHARTS ────────────────────────────────────────────────────────────────
+
+  let weeklyChartInst = null;
+  let donutChartInst  = null;
+
+  function renderWeeklyChart(data) {
+    const ctx = document.getElementById("weeklyChart").getContext("2d");
+    if (weeklyChartInst) weeklyChartInst.destroy();
+
+    const last7 = data.slice(-7);
+    if (!last7.length) return;
+
+    weeklyChartInst = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: last7.map(d => d.Date ? String(d.Date).slice(5) : ""),
+        datasets: [
+          { label: "IN",  data: last7.map(d => Number(d.TotalIN)  || 0), backgroundColor: "#7C5C9C", borderRadius: 4 },
+          { label: "OUT", data: last7.map(d => Number(d.TotalOUT) || 0), backgroundColor: "#F0A868", borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: "#444", font: { size: 13 } } } },
+        scales: {
+          x: { ticks: { color: "#666" }, grid: { color: "#e8e2de" } },
+          y: {
+            ticks: { color: "#666", stepSize: 1, callback: v => Number.isInteger(v) ? v : null },
+            grid: { color: "#e8e2de" },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  function renderDonutChart(inCount, outCount) {
+    const ctx = document.getElementById("donutChart").getContext("2d");
+    if (donutChartInst) donutChartInst.destroy();
+    const hasData = inCount > 0 || outCount > 0;
+    donutChartInst = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: hasData ? ["IN", "OUT"] : ["No scans today"],
+        datasets: [{
+          data: hasData ? [inCount, outCount] : [1],
+          backgroundColor: hasData ? ["#7C5C9C", "#F0A868"] : ["#e8e2de"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: "#444", font: { size: 13 } } },
+          tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}` } }
+        },
+        cutout: "65%"
+      }
+    });
+  }
+
+  // ── ADD USER ──────────────────────────────────────────────────────────────
+
+  function addNewUser(e) {
+    e.preventDefault();
+    const name  = document.getElementById("inpName").value.trim();
+    const email = document.getElementById("inpEmail").value.trim();
+    const role  = document.getElementById("inpRole").value;
+    const result = document.getElementById("addUserResult");
+    const btn   = document.getElementById("btnAddUser");
+
+    if (!name) return;
+
+    btn.disabled     = true;
+    btn.textContent  = "Adding...";
+    result.style.display = "none";
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled    = false;
+        btn.textContent = "Add & Generate QR";
+        result.style.display = "";
+        result.className = "form-result form-success";
+        result.textContent = `✅ ${name} added! ID: ${res.userId}. QR code saved to Drive.`;
+        document.getElementById("addUserForm").reset();
+        loadUsers();
+      })
+      .withFailureHandler(err => {
+        btn.disabled    = false;
+        btn.textContent = "Add & Generate QR";
+        result.style.display = "";
+        result.className = "form-result form-error";
+        result.textContent = `❌ Error: ${err}`;
+      })
+      .addUser(name, email, role);
+  }
+
+  // ── LOG FILTER ────────────────────────────────────────────────────────────
+
+  function filterLogs() {
+    const date = document.getElementById("filterDate").value; // YYYY-MM-DD
+    if (!date) { renderLogs(allLogs); return; }
+    const filtered = allLogs.filter(l => {
+      if (!l.Timestamp) return false;
+      const ts = String(l.Timestamp);
+      // Handle both ISO format (2026-05-01T...) and IST string (01/05/2026, 12:33:28)
+      if (ts.startsWith(date)) return true; // ISO format match
+      // IST string format: dd/MM/yyyy — parse and compare
+      const m = ts.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` === date;
+      return false;
+    });
+    renderLogs(filtered);
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+
+  function formatDateTime(isoStr) {
+    if (!isoStr) return "—";
+    // If it's already a formatted IST string (e.g. "01/05/2026, 12:33:28"), return as-is
+    if (String(isoStr).match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+      return isoStr;
+    }
+    const d = new Date(isoStr);
+    if (isNaN(d)) return isoStr;
+    // Otherwise convert ISO/UTC to IST for display
+    return d.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    });
+  }
+
+  function truncate(str, n) {
+    return str.length > n ? str.slice(0, n) + "…" : str;
+  }
+  </script>
+</body>
+</html>

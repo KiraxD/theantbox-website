@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Attendance — Scanner Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--card:#1c2128;--elev:#21262d;--border:#30363d;--txt:#e6edf3;--txt2:#8b949e;--muted:#6e7681;--blue:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--grad:linear-gradient(135deg,#1f6feb,#388bfd);--r:10px;--rl:16px;--rx:24px;--sh:0 4px 16px rgba(0,0,0,.5)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+code{font-family:'JetBrains Mono',monospace;font-size:.875em}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(13,17,23,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px}
+.hdr{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ic{width:40px;height:40px;background:var(--grad);border-radius:var(--r);display:grid;place-items:center;font-size:1.2rem}
+.logo h1{font-size:1rem;font-weight:700;line-height:1}
+.logo p{font-size:.7rem;color:var(--muted);margin-top:2px}
+.nav{display:flex;gap:6px}
+.nav a{padding:6px 12px;border-radius:var(--r);font-size:.8rem;font-weight:500;color:var(--txt2);transition:.2s}
+.nav a:hover,.nav a.active{background:var(--elev);color:var(--blue)}
+
+/* MAIN */
+main{max-width:520px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:18px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:.875rem;font-weight:600;transition:.2s}
+.dot{width:8px;height:8px;border-radius:50%;animation:pdot 1.5s infinite}
+.b-ready{background:var(--card);border:1px solid var(--border);color:var(--txt2)}.b-ready .dot{background:var(--muted);animation:none}
+.b-scan{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);color:var(--blue)}.b-scan .dot{background:var(--blue)}
+.b-ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green)}.b-ok .dot{background:var(--green)}
+.b-err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red)}.b-err .dot{background:var(--red)}
+.b-proc{background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);color:var(--amber)}.b-proc .dot{background:var(--amber)}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+
+/* SCANNER CARD */
+.scan-card{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rx);overflow:hidden;box-shadow:var(--sh);transition:border-color .3s,box-shadow .3s}
+.scan-card.p-ok{border-color:var(--green);box-shadow:0 0 0 3px rgba(63,185,80,.25)}
+.scan-card.p-err{border-color:var(--red);box-shadow:0 0 0 3px rgba(248,81,73,.25)}
+
+/* QR reader overrides */
+.vp{position:relative}
+#reader{width:100%!important;border:none!important;background:#000}
+#reader video{width:100%!important;border-radius:0!important}
+#reader img,#reader__scan_region>img,#reader__filescan_input{display:none!important}
+#reader__dashboard_section_swaplink,#reader__status_span,#reader__header_message{display:none!important}
+
+/* corners + scan line */
+.ovl{position:absolute;inset:0;pointer-events:none}
+.c{position:absolute;width:22px;height:22px;border-style:solid;border-color:var(--blue)}
+.tl{top:16px;left:16px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.tr{top:16px;right:16px;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.bl{bottom:16px;left:16px;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.br{bottom:16px;right:16px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.sline{position:absolute;left:16px;right:16px;top:50%;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);animation:smv 2s linear infinite;display:none}
+@keyframes smv{0%{transform:translateY(-80px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+
+/* controls */
+.ctrl{display:flex;gap:10px;justify-content:center;padding:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-p{background:var(--grad);color:#fff}
+.btn-p:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-g{background:var(--elev);color:var(--txt);border:1px solid var(--border)}
+.btn-g:hover{background:var(--border)}
+
+/* cam error */
+.cam-err{display:flex;align-items:center;gap:8px;background:rgba(248,81,73,.1);border-top:1px solid rgba(248,81,73,.3);color:var(--red);padding:12px 16px;font-size:.875rem}
+
+/* result panel */
+.res-panel{width:100%;background:var(--card);border:1px solid rgba(63,185,80,.35);border-radius:var(--rx);padding:22px;display:flex;align-items:center;gap:14px;animation:slin .3s ease}
+.res-ico{font-size:2.4rem;line-height:1}
+.res-info{flex:1}
+.res-name{font-size:1.2rem;font-weight:700}
+.res-role{font-size:.875rem;color:var(--txt2);margin-top:2px}
+.res-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.chip{background:var(--elev);border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--txt2)}
+.inout{font-size:1.2rem;font-weight:800;padding:7px 18px;border-radius:var(--r);letter-spacing:.05em}
+.iin{background:linear-gradient(135deg,#1a7f37,#2ea043);color:#fff}
+.iout{background:linear-gradient(135deg,#b91c1c,#dc2626);color:#fff}
+
+/* error panel */
+.err-panel{width:100%;background:rgba(248,81,73,.05);border:1px solid rgba(248,81,73,.3);border-radius:var(--rx);padding:22px;text-align:center;animation:slin .3s ease}
+.err-panel h3{color:var(--red);text-transform:uppercase;letter-spacing:.1em;font-size:.95rem}
+.err-panel p{font-size:.875rem;color:var(--txt2);margin-top:6px}
+
+/* feed */
+.feed-sec{width:100%}
+.sec-ttl{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.cbadge{background:var(--elev);border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.75rem;color:var(--blue)}
+.feed{display:flex;flex-direction:column;gap:7px}
+.feed-empty{color:var(--muted);font-size:.875rem;text-align:center;padding:16px}
+.fi{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:11px 14px;display:flex;align-items:center;gap:9px;animation:slin .2s ease}
+.fi-name{display:block;font-weight:600;font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-id{display:block;font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.fi-det{flex:1;min-width:0}
+.spi{font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:999px}
+.sp-in{background:rgba(63,185,80,.2);color:var(--green)}
+.sp-out{background:rgba(248,81,73,.2);color:var(--red)}
+.ftime{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:200;color:var(--txt2);font-size:.875rem}
+.spin{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes slin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* DEMO NOTICE */
+.demo-bar{width:100%;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);border-radius:var(--r);padding:10px 14px;font-size:.8rem;color:var(--amber);display:flex;align-items:center;gap:8px}
+
+/* manual input */
+.manual-box{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rx);padding:18px}
+.manual-box h4{font-size:.875rem;font-weight:600;color:var(--txt2);margin-bottom:10px}
+.mrow{display:flex;gap:8px}
+.mrow input{flex:1;background:var(--elev);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--txt);font-family:'Inter',sans-serif;font-size:.875rem}
+.mrow input:focus{outline:none;border-color:var(--blue)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-ic">🎫</div>
+      <div><h1>QR Attendance</h1><p>Digital Entry System — Demo</p></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" class="active">📷 Scanner</a>
+      <a href="admin-demo.html">🛠 Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="demo-bar">🟢 <strong>Live Mode</strong> — Connected securely to your Google Sheets database.</div>
+
+  <div id="badge" class="badge b-ready"><span class="dot"></span><span id="btxt">Ready to Scan</span></div>
+
+  <div class="scan-card" id="scanCard">
+    <div class="vp">
+      <div id="reader"></div>
+      <div class="ovl">
+        <div class="c tl"></div><div class="c tr"></div>
+        <div class="c bl"></div><div class="c br"></div>
+        <div class="sline" id="sline"></div>
+      </div>
+    </div>
+    <div class="ctrl">
+      <button class="btn btn-p" id="btnStart" onclick="startCam()">📷 Start Camera</button>
+      <button class="btn btn-g" id="btnStop"  onclick="stopCam()"  style="display:none">⏹ Stop</button>
+      <button class="btn btn-g" id="btnFlip"  onclick="flipCam()"  style="display:none">🔄</button>
+    </div>
+    <div class="cam-err" id="camErr" style="display:none">⚠️ <span id="camErrTxt">Camera access denied.</span></div>
+  </div>
+
+  <!-- Manual test input -->
+  <div class="manual-box">
+    <h4>🔬 Test without camera — paste a User ID:</h4>
+    <div class="mrow">
+      <input type="text" id="manualId" placeholder='USR-2024-0001  or  {"uid":"USR-2024-0001","name":"Arjun Sharma","role":"student"}'>
+      <button class="btn btn-p" onclick="manualScan()">Validate</button>
+    </div>
+  </div>
+
+  <div id="resPanel"  style="display:none" class="res-panel">
+    <div id="resIco" class="res-ico">✅</div>
+    <div class="res-info">
+      <h2 id="resName" class="res-name">—</h2>
+      <p  id="resRole" class="res-role">—</p>
+      <div class="res-meta">
+        <span id="resId"   class="chip">—</span>
+        <span id="resTime" class="chip">—</span>
+      </div>
+    </div>
+    <div id="resBadge" class="inout iin">—</div>
+  </div>
+
+  <div id="errPanel" style="display:none" class="err-panel">
+    <div style="font-size:2rem">❌</div>
+    <h3 id="errCode">ERROR</h3>
+    <p  id="errMsg">—</p>
+  </div>
+
+  <div class="feed-sec">
+    <h3 class="sec-ttl">Recent Scans <span class="cbadge" id="cnt">0</span></h3>
+    <div class="feed" id="feed"><p class="feed-empty">No scans yet.</p></div>
+  </div>
+</main>
+
+<div class="ov" id="ov" style="display:none"><div class="spin"></div><p>Validating…</p></div>
+
+<script>
+// ── LIVE BACKEND CONNECTION ────────────────────────────────────────────────────
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzzqBKutxOKCLKd2Z2D1ti59mEk_4JvBx6kjw6q6zl0q91MRp8OlCs5LZjU7yvIqxzp/exec";
+
+// ── SCANNER ──────────────────────────────────────────────────────────────────
+let qr=null, scanning=false, lastHash="", front=false, scanCnt=0;
+
+function startCam(){
+  qr = new Html5Qrcode("reader");
+  qr.start({facingMode:front?"user":"environment"},{fps:15,qrbox:{width:240,height:240}},onDecode,()=>{})
+    .then(()=>{
+      scanning=true;
+      setBadge("scan","Scanning… Point at QR code");
+      document.getElementById("btnStart").style.display="none";
+      document.getElementById("btnStop").style.display="";
+      document.getElementById("btnFlip").style.display="";
+      document.getElementById("sline").style.display="";
+    })
+    .catch(e=>showCamErr(e));
+}
+function stopCam(){
+  if(qr&&scanning) qr.stop().then(()=>{
+    scanning=false; setBadge("ready","Ready to Scan");
+    document.getElementById("btnStart").style.display="";
+    document.getElementById("btnStop").style.display="none";
+    document.getElementById("btnFlip").style.display="none";
+    document.getElementById("sline").style.display="none";
+  });
+}
+function flipCam(){stopCam();front=!front;setTimeout(startCam,600)}
+
+function onDecode(txt){
+  if(txt===lastHash)return;
+  lastHash=txt; setTimeout(()=>{lastHash=""},2000);
+  processQR(txt);
+}
+
+function manualScan(){
+  const v=document.getElementById("manualId").value.trim();
+  if(!v)return;
+  processQR(v);
+}
+
+// ── VALIDATION ───────────────────────────────────────────────────────────────
+function processQR(raw){
+  showOv(true); hidePanels(); setBadge("proc","Validating with Server…");
+  
+  fetch(BACKEND_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "scan", data: raw }) // sends as text/plain to bypass CORS preflight
+  })
+  .then(res => res.json())
+  .then(result => {
+    showOv(false);
+    if(result.success){ showRes(result); addFeed(result,true); setBadge("ok",`${result.status} — ${result.userInfo.name}`); }
+    else { showErr(result); addFeed(result,false); setBadge("err",result.errorCode||"Error"); }
+    setTimeout(()=>setBadge("scan","Scanning…"),4000);
+  })
+  .catch(err => {
+    showOv(false);
+    showErr({ errorCode: "NETWORK_ERROR", message: "Failed to reach Google Apps Script backend." });
+    setBadge("err","Network Error");
+    setTimeout(()=>setBadge("scan","Scanning…"),4000);
+  });
+}
+
+// Mock validate removed. Logic is handled by GAS backend.
+
+// ── UI HELPERS ───────────────────────────────────────────────────────────────
+function showRes(r){
+  hidePanels();
+  const isIN=r.status==="IN";
+  document.getElementById("resPanel").style.display="";
+  document.getElementById("resIco").textContent=isIN?"✅":"🚪";
+  document.getElementById("resName").textContent=r.userInfo.name;
+  document.getElementById("resRole").textContent=r.userInfo.role;
+  document.getElementById("resId").textContent="ID: "+r.userInfo.uid;
+  document.getElementById("resTime").textContent=fmtTime(r.userInfo.timestamp);
+  const rb=document.getElementById("resBadge");
+  rb.textContent=r.status; rb.className="inout "+(isIN?"iin":"iout");
+  const sc=document.getElementById("scanCard");
+  sc.classList.add(isIN?"p-ok":"p-err");
+  setTimeout(()=>sc.className="scan-card",800);
+}
+function showErr(r){
+  hidePanels();
+  document.getElementById("errPanel").style.display="";
+  document.getElementById("errCode").textContent=(r.errorCode||"ERROR").replace(/_/g," ");
+  document.getElementById("errMsg").textContent=r.message;
+}
+function hidePanels(){
+  document.getElementById("resPanel").style.display="none";
+  document.getElementById("errPanel").style.display="none";
+}
+function showCamErr(e){
+  document.getElementById("camErr").style.display="";
+  document.getElementById("camErrTxt").textContent=String(e).includes("NotAllowed")|String(e).includes("Permission")?"Camera access denied. Allow permissions in browser settings.":"Camera error: "+e;
+  setBadge("err","Camera error");
+}
+function showOv(v){document.getElementById("ov").style.display=v?"":"none"}
+function setBadge(state,txt){
+  const b=document.getElementById("badge");
+  const map={ready:"b-ready",scan:"b-scan",ok:"b-ok",err:"b-err",proc:"b-proc"};
+  b.className="badge "+(map[state]||"b-ready");
+  document.getElementById("btxt").textContent=txt;
+}
+function addFeed(r,ok){
+  scanCnt++; document.getElementById("cnt").textContent=scanCnt;
+  const feed=document.getElementById("feed");
+  const empty=feed.querySelector(".feed-empty"); if(empty)empty.remove();
+  const d=document.createElement("div"); d.className="fi";
+  if(ok){
+    const isIN=r.status==="IN";
+    d.innerHTML=`<span style="font-size:1.1rem">${isIN?"🟢":"🔴"}</span><div class="fi-det"><span class="fi-name">${r.userInfo.name}</span><span class="fi-id">${r.userInfo.uid}</span></div><span class="spi ${isIN?"sp-in":"sp-out"}">${r.status}</span><span class="ftime">${fmtTime(r.userInfo.timestamp)}</span>`;
+  } else {
+    d.innerHTML=`<span style="font-size:1.1rem">⚠️</span><div class="fi-det"><span class="fi-name">${r.errorCode||"ERROR"}</span><span class="fi-id">${r.message}</span></div><span class="ftime">${fmtTime(new Date().toISOString())}</span>`;
+  }
+  feed.insertBefore(d,feed.firstChild);
+  if(feed.children.length>10) feed.removeChild(feed.lastChild);
+}
+function fmtTime(iso){
+  if(!iso)return"—";
+  return new Date(iso).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+</script>
+</body>
+</html>

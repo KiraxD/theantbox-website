@@ -1,0 +1,485 @@
+/* ============================================================
+   THE ANT BOX ERP — MODALS.CSS
+   Modal dialogs, drawers, overlays, confirm dialogs
+   ============================================================ */
+
+/* ── Modal Overlay ────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Modal Box ────────────────────────────────────────────── */
+.modal {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90dvh;
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.96) translateY(12px);
+  transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+  opacity: 0;
+}
+
+.modal-overlay.is-open .modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+[data-theme="dark"] .modal {
+  background: #1e1b2a;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Modal sizes */
+.modal-sm  { max-width: 400px; }
+.modal-md  { max-width: 540px; }
+.modal-lg  { max-width: 720px; }
+.modal-xl  { max-width: 920px; }
+
+/* ── Modal Header ─────────────────────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.modal-title-group {}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all var(--duration-fast);
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: var(--beige-dark);
+  color: var(--black);
+}
+
+.modal-close svg { width: 18px; height: 18px; }
+
+/* ── Modal Body ───────────────────────────────────────────── */
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Modal Footer ─────────────────────────────────────────── */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  background: rgba(245,243,236,0.5);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .modal-footer {
+  background: rgba(255,255,255,0.03);
+}
+
+.modal-footer-left {
+  flex: 1;
+}
+
+/* ── Confirm Dialog ───────────────────────────────────────── */
+.confirm-dialog {
+  max-width: 420px;
+  text-align: center;
+}
+
+.confirm-dialog .modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 24px 24px;
+}
+
+.confirm-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-icon.danger { background: var(--danger-bg); color: var(--danger); }
+.confirm-icon.warning { background: var(--warning-bg); color: var(--warning); }
+.confirm-icon.success { background: var(--success-bg); color: var(--success); }
+
+.confirm-icon svg { width: 28px; height: 28px; }
+
+.confirm-dialog h3 {
+  font-size: 18px;
+  color: var(--black);
+}
+
+.confirm-dialog p {
+  font-size: 14px;
+  max-width: 320px;
+}
+
+/* ── Drawer (side sheet) ──────────────────────────────────── */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: var(--z-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: 500px;
+  max-width: 95vw;
+  background: var(--white);
+  box-shadow: -8px 0 40px rgba(17,17,17,0.12);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-modal);
+  transform: translateX(100%);
+  transition: transform var(--duration) var(--ease);
+}
+
+.drawer-overlay.is-open .drawer {
+  transform: translateX(0);
+}
+
+[data-theme="dark"] .drawer {
+  background: #1e1b2a;
+  border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.025em;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* ── Toast Notifications ──────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  min-width: 280px;
+  max-width: 380px;
+  pointer-events: all;
+  animation: slideInRight var(--duration) var(--ease) forwards;
+  transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+
+[data-theme="dark"] .toast {
+  background: #211e2e;
+  border-color: rgba(255,255,255,0.10);
+}
+
+.toast.is-removing {
+  animation: none;
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast-content { flex: 1; }
+
+.toast-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.3;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.toast-close {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color var(--duration-fast);
+}
+
+.toast-close:hover { color: var(--black); }
+.toast-close svg { width: 14px; height: 14px; }
+
+/* Toast types */
+.toast-success .toast-icon { color: var(--success); }
+.toast-warning .toast-icon { color: var(--warning); }
+.toast-danger .toast-icon  { color: var(--danger); }
+.toast-info .toast-icon    { color: var(--info); }
+
+.toast-success { border-left: 3px solid var(--success); }
+.toast-warning { border-left: 3px solid var(--warning); }
+.toast-danger  { border-left: 3px solid var(--danger); }
+.toast-info    { border-left: 3px solid var(--info); }
+
+/* ── Notification Panel ───────────────────────────────────── */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 480px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease), visibility var(--duration-fast) var(--ease);
+}
+
+.notif-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+[data-theme="dark"] .notif-panel {
+  background: #211e2e;
+  border-color: rgba(255,255,255,0.10);
+}
+
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.notif-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.notif-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notif-panel-body {
+  min-height: 88px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.notif-item:hover { background: var(--beige); }
+.notif-item:last-child { border-bottom: 0; }
+
+.notif-item.is-unread {
+  background: var(--purple-light);
+}
+
+.notif-item.is-unread:hover {
+  background: rgba(142,67,172,0.12);
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--purple);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.notif-item:not(.is-unread) .notif-dot {
+  background: transparent;
+}
+
+.notif-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.notif-time {
+  font-size: 11px;
+  color: var(--muted-light);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    align-items: stretch;
+  }
+
+  .toast { max-width: 100%; }
+
+  .modal-overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-height: 85dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    transform: translateY(100%);
+  }
+
+  .modal-overlay.is-open .modal {
+    transform: translateY(0);
+  }
+
+  .notif-panel {
+    right: -12px;
+    width: min(360px, calc(100vw - 20px));
+  }
+}

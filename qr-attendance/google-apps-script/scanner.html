@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Attendance Launcher</title>
+  <?!= include('styles') ?>
+  <style>
+    .launcher-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 40px 20px;
+      text-align: center;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    .launcher-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    .launcher-title {
+      font-size: 1.4rem;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .launcher-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 30px;
+    }
+    .launch-btn {
+      background: linear-gradient(135deg, #2ea043, #3fb950);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(46, 160, 67, 0.3);
+      transition: 0.2s;
+    }
+    .launch-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46, 160, 67, 0.4);
+    }
+  </style>
+</head>
+<body class="scanner-body">
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon" style="background:transparent; width:auto; height:auto; display:flex;">
+          <img src="https://i.ibb.co/LDcYCyy3/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="AntBox Logo" style="height: 36px; object-fit: contain;">
+        </div>
+        <div>
+          <h1 class="logo-title">QR Attendance</h1>
+          <p class="logo-sub">Digital ID Entry System</p>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="<?= ScriptApp.getService().getUrl() ?>?page=scanner" class="nav-btn active" target="_top">📷 Scanner</a>
+        <a href="<?= ScriptApp.getService().getUrl() ?>?page=admin"   class="nav-btn" target="_top">🛠 Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="scanner-main">
+    <div id="statusBadge" class="status-badge badge-ready">
+      <span class="badge-dot"></span>
+      <span id="badgeText">Ready</span>
+    </div>
+
+    <!-- Launcher UI -->
+    <div class="launcher-box" id="launcherBox">
+      <div class="launcher-icon">📷</div>
+      <h2 class="launcher-title">Start Camera Scanner</h2>
+      <p class="launcher-desc">
+        Google blocks the camera inside this window.<br>
+        Click the button below to open the secure scanner window.
+      </p>
+      <button class="launch-btn" onclick="openScannerWindow()">🚀 Launch Live Scanner</button>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processingOverlay" class="processing-overlay" style="display:none; text-align:center; padding: 40px;">
+      <div class="processing-spinner"></div>
+      <p style="margin-top: 15px; color: var(--text-primary); font-weight: bold;">Validating QR Code...</p>
+    </div>
+
+    <!-- Result Panel -->
+    <div id="resultPanel" class="result-panel" style="display:none">
+      <div id="resultIcon" class="result-icon">✅</div>
+      <div class="result-info">
+        <h2 id="resultName" class="result-name">—</h2>
+        <p  id="resultRole" class="result-role">—</p>
+        <div class="result-meta">
+          <span id="resultUserId" class="meta-chip">ID: —</span>
+          <span id="resultTime"   class="meta-chip">—</span>
+        </div>
+      </div>
+      <div id="resultStatusBadge" class="in-out-badge">—</div>
+    </div>
+
+    <!-- Error Panel -->
+    <div id="errorPanel" class="error-panel" style="display:none">
+      <div class="error-icon">❌</div>
+      <h3 id="errorCode"    class="error-code">ERROR</h3>
+      <p  id="errorMessage" class="error-msg">—</p>
+    </div>
+  </main>
+
+  <script>
+    let popupWindow = null;
+
+    function openScannerWindow() {
+      // 1. Open a blank pop-up window
+      popupWindow = window.open('', '_blank', 'width=500,height=600');
+      
+      // 2. Inject the scanner app into the new window!
+      // This bypasses Google's iframe camera block entirely.
+      const htmlCode = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Live Camera Scanner</title>
+          <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>
+          <style>
+            body { font-family: -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+            #qr-reader { width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; border: 2px solid #30363d; background: #161b22; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            h2 { margin-bottom: 20px; }
+            .btn { background: #3fb950; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+            .status { margin-top: 15px; font-size: 14px; color: #8b949e; }
+          </style>
+        </head>
+        <body>
+          <h2>Point at QR Code</h2>
+          <div id="qr-reader"></div>
+          <p class="status" id="statusTxt">Starting camera...</p>
+          <button class="btn" onclick="window.close()">Close Window</button>
+
+          <script>
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+              { facingMode: "environment" }, 
+              { fps: 15, qrbox: { width: 250, height: 250 } },
+              (decodedText) => {
+                // Success! Send data back to the parent window
+                document.getElementById('statusTxt').innerText = "✅ QR Found! Sending...";
+                document.getElementById('statusTxt').style.color = "#3fb950";
+                
+                window.opener.postMessage({ type: 'QR_SCANNED', payload: decodedText }, '*');
+                
+                // Stop camera and close popup automatically after a short delay
+                html5QrCode.stop().then(() => {
+                  setTimeout(() => window.close(), 800);
+                });
+              },
+              (err) => {}
+            ).catch(err => {
+              document.getElementById('statusTxt').innerText = "❌ Camera Blocked. Please allow camera in browser settings.";
+              document.getElementById('statusTxt').style.color = "#f85149";
+            });
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      popupWindow.document.open();
+      popupWindow.document.write(htmlCode);
+      popupWindow.document.close();
+    }
+
+    // ── LISTEN FOR MESSAGES FROM POPUP ──
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'QR_SCANNED') {
+        processScannedQR(event.data.payload);
+      }
+    });
+
+    // ── VALIDATION LOGIC ──
+    function processScannedQR(decodedText) {
+      document.getElementById('launcherBox').style.display = 'none';
+      document.getElementById('resultPanel').style.display = 'none';
+      document.getElementById('errorPanel').style.display = 'none';
+      
+      document.getElementById('processingOverlay').style.display = '';
+      setBadge('processing', 'Validating with server...');
+
+      google.script.run
+        .withSuccessHandler(handleScanResult)
+        .withFailureHandler(handleScanError)
+        .validateAndLog({ qrPayload: decodedText, scanAgent: "LiveCameraBypass" });
+    }
+
+    function handleScanResult(result) {
+      document.getElementById('processingOverlay').style.display = 'none';
+      document.getElementById('launcherBox').style.display = '';
+
+      if (result.success) {
+        showSuccess(result);
+        setBadge('success', result.status + ' — ' + result.userInfo.name);
+      } else {
+        showError(result.errorCode || 'ERROR', result.message);
+        setBadge('error', result.errorCode || 'Scan failed');
+      }
+
+      // Auto-reset result panel after 4 seconds
+      setTimeout(() => {
+        document.getElementById('resultPanel').style.display = 'none';
+        document.getElementById('errorPanel').style.display  = 'none';
+        setBadge('ready', 'Ready');
+      }, 4000);
+    }
+
+    function handleScanError(err) {
+      document.getElementById('processingOverlay').style.display = 'none';
+      document.getElementById('launcherBox').style.display = '';
+      showError('SERVER_ERROR', 'Could not reach server.');
+      setBadge('error', 'Connection error');
+      // Still reset cooldown on network errors
+      setTimeout(() => {
+        document.getElementById('errorPanel').style.display = 'none';
+        setBadge('ready', 'Ready');
+        scanCooldown = false;
+      }, 4000);
+    }
+
+    function showSuccess(result) {
+      const ui = result.userInfo;
+      const isIN = result.status === 'IN';
+      document.getElementById('resultPanel').style.display = '';
+      document.getElementById('errorPanel').style.display = 'none';
+      
+      document.getElementById('resultIcon').textContent = isIN ? '✅' : '🚪';
+      document.getElementById('resultName').textContent = ui.name;
+      document.getElementById('resultRole').textContent = ui.role || 'Student';
+      document.getElementById('resultUserId').textContent = 'ID: ' + ui.userId;
+      
+      const timeStr = new Date(ui.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('resultTime').textContent = timeStr;
+      
+      document.getElementById('resultStatusBadge').textContent = result.status;
+      document.getElementById('resultStatusBadge').className = 'in-out-badge ' + (isIN ? 'badge-in' : 'badge-out');
+    }
+
+    function showError(code, message) {
+      document.getElementById('errorPanel').style.display = '';
+      document.getElementById('resultPanel').style.display = 'none';
+      document.getElementById('errorCode').textContent = code.replace(/_/g, ' ');
+      document.getElementById('errorMessage').textContent = message;
+    }
+
+    function setBadge(state, text) {
+      document.getElementById('statusBadge').className = 'status-badge badge-' + state;
+      document.getElementById('badgeText').textContent = text;
+    }
+  </script>
+
+</body>
+</html>
