@@ -20,6 +20,7 @@ export async function signUp(email, password, fullName) {
     email, 
     password,
     options: {
+      emailRedirectTo: `${window.location.origin}/erp`,
       data: {
         full_name: fullName
       }
