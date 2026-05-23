@@ -10,7 +10,6 @@ const htmlFiles = [
   path.join(pagesDir, 'interns.html'),
   path.join(pagesDir, 'attendance.html'),
   path.join(pagesDir, 'tasks.html'),
-  path.join(pagesDir, 'inventory.html'),
   path.join(pagesDir, 'invoices.html'),
   path.join(pagesDir, 'payroll.html'),
   path.join(pagesDir, 'reports.html'),
@@ -27,7 +26,6 @@ const newNavTemplate = `    <nav class="sidebar-nav">
       <a href="/erp/pages/attendance.html" class="nav-item" data-page="attendance.html">Attendance</a>
       <a href="/erp/pages/tasks.html" class="nav-item" data-page="tasks.html">Tasks</a>
       <a href="/erp/pages/crm.html" class="nav-item" data-page="crm.html">CRM</a>
-      <a href="/erp/pages/inventory.html" class="nav-item" data-page="inventory.html">Inventory</a>
       <div class="nav-section-label" data-min-role="intern">Finance</div>
       <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr" data-page="payroll.html">Payroll</a>
       <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="accountant" data-page="invoices.html">Invoices</a>
