@@ -276,14 +276,17 @@ async function openInvoiceDetail(id) {
     document.getElementById('invoice-date-due').textContent = formatDate(inv.due_date);
 
     const curr = inv.currency || 'USD';
-    tbody.innerHTML = inv.items.map(item => `
-      <tr>
-        <td><strong>${item.description}</strong></td>
-        <td style="text-align: right;">${item.quantity}</td>
-        <td style="text-align: right;">${formatCurrency(item.unit_price, curr)}</td>
-        <td style="text-align: right; font-weight: 500;">${formatCurrency(item.amount, curr)}</td>
-      </tr>
-    `).join('');
+    const tbody = document.getElementById('invoice-items-detail-tbody');
+    if (tbody) {
+      tbody.innerHTML = inv.items.map(item => `
+        <tr>
+          <td><strong>${item.description}</strong></td>
+          <td style="text-align: right;">${item.quantity}</td>
+          <td style="text-align: right;">${formatCurrency(item.unit_price, curr)}</td>
+          <td style="text-align: right; font-weight: 500;">${formatCurrency(item.amount, curr)}</td>
+        </tr>
+      `).join('');
+    }
 
     // Summary totals
     document.getElementById('invoice-detail-subtotal').textContent = formatCurrency(inv.subtotal, curr);
