@@ -410,6 +410,10 @@
   transition: all var(--duration) var(--ease);
 }
 
+#sidebar-toggle {
+  display: none;
+}
+
 .topbar-icon-btn::before {
   content: '';
   position: absolute;
@@ -659,7 +663,7 @@
     display: block;
   }
 
-  .sidebar-toggle {
+  #sidebar-toggle {
     display: flex;
   }
 
