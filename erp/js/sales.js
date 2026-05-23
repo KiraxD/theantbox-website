@@ -24,7 +24,7 @@ import * as vendorService from './services/vendorService.js';
 import * as crmService from './services/crmService.js';
 
 initTheme();
-const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'manager', 'accountant', 'employee'] });
+const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'manager', 'accountant', 'employee', 'intern'] });
 if (!ctx) throw new Error('Not authenticated');
 initSidebar();
 initLogout();

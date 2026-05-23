@@ -39,7 +39,7 @@ import { getEmployees } from './services/employeeService.js';
 
 // Init page
 initTheme();
-const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'manager', 'hr', 'accountant', 'employee'] });
+const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'manager', 'hr', 'accountant', 'employee', 'intern'] });
 if (!ctx) throw new Error('Not authenticated');
 initSidebar();
 initLogout();
