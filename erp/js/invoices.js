@@ -21,6 +21,24 @@ let searchQuery = '';
 let statusFilter = '';
 let rowCount = 0;
 
+// Helper to format currency dynamically using Intl.NumberFormat
+function formatCurrency(amount, currencyCode = 'USD') {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD'
+    }).format(amount);
+  } catch (e) {
+    return `${currencyCode || 'USD'} ${Number(amount).toFixed(2)}`;
+  }
+}
+
+// Helper to get currently selected currency in the creation form
+function getSelectedCurrency() {
+  const currencySelect = document.getElementById('currency');
+  return currencySelect ? currencySelect.value : 'USD';
+}
+
 // ── Load & Render Invoices ────────────────────────────────────
 async function loadInvoices() {
   const tbody = document.getElementById('invoices-tbody');
@@ -31,9 +49,9 @@ async function loadInvoices() {
   try {
     // 1. Load Stats
     const stats = await getInvoiceStats();
-    document.getElementById('stat-total-invoiced').textContent = `$${stats.totalInvoiced.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    document.getElementById('stat-revenue-collected').textContent = `$${stats.paidAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    document.getElementById('stat-outstanding').textContent = `$${stats.pendingAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    document.getElementById('stat-total-invoiced').textContent = formatCurrency(stats.totalInvoiced, 'USD');
+    document.getElementById('stat-revenue-collected').textContent = formatCurrency(stats.paidAmount, 'USD');
+    document.getElementById('stat-outstanding').textContent = formatCurrency(stats.pendingAmount, 'USD');
 
     // 2. Load Table
     allInvoices = await getInvoices({ status: statusFilter, search: searchQuery });
@@ -61,7 +79,7 @@ async function loadInvoices() {
           <td style="font-weight: 500; color: var(--black);">${inv.client_name}</td>
           <td>${formatDate(inv.issued_date)}</td>
           <td>${formatDate(inv.due_date)}</td>
-          <td style="font-weight: 600;">$${Number(inv.total).toFixed(2)}</td>
+          <td style="font-weight: 600;">${formatCurrency(inv.total, inv.currency)}</td>
           <td><span class="status ${badgeCls}">${statusLabel}</span></td>
           <td style="text-align: right;">
             <div class="table-actions" style="justify-content: flex-end;">
@@ -122,12 +140,13 @@ function addInvoiceRow(desc = '', qty = 1, price = 0.00) {
   if (!container) return;
 
   const rowId = `row-${rowCount++}`;
+  const currencyCode = getSelectedCurrency();
   const rowHtml = `
     <div class="invoice-row-item" id="${rowId}">
       <input type="text" class="input item-desc" placeholder="Description of service/item" value="${desc}" required>
       <input type="number" class="input item-qty" min="1" value="${qty}" style="text-align: right;" required>
       <input type="number" class="input item-price" min="0" step="0.01" value="${price.toFixed(2)}" style="text-align: right;" required>
-      <span class="item-amount" style="text-align: right; font-weight: 500;">$${(qty * price).toFixed(2)}</span>
+      <span class="item-amount" style="text-align: right; font-weight: 500;">${formatCurrency(qty * price, currencyCode)}</span>
       <button type="button" class="btn btn-ghost btn-icon-sm btn-remove-row" style="color:var(--danger)">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
       </button>
@@ -142,7 +161,7 @@ function addInvoiceRow(desc = '', qty = 1, price = 0.00) {
   const updateRowVal = () => {
     const q = Number(qtyInput.value) || 0;
     const p = Number(priceInput.value) || 0;
-    newRow.querySelector('.item-amount').textContent = `$${(q * p).toFixed(2)}`;
+    newRow.querySelector('.item-amount').textContent = formatCurrency(q * p, getSelectedCurrency());
     recalculateTotals();
   };
 
@@ -170,9 +189,10 @@ function recalculateTotals() {
   const tax = Number(document.getElementById('tax').value) || 0;
   const discount = Number(document.getElementById('discount').value) || 0;
   const total = subtotal + tax - discount;
+  const currencyCode = getSelectedCurrency();
 
-  document.getElementById('summary-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById('summary-total').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('summary-subtotal').textContent = formatCurrency(subtotal, currencyCode);
+  document.getElementById('summary-total').textContent = formatCurrency(total, currencyCode);
 }
 
 // ── Detail & Preview ──────────────────────────────────────────
@@ -191,22 +211,21 @@ async function openInvoiceDetail(id) {
     document.getElementById('invoice-date-issued').textContent = formatDate(inv.issued_date);
     document.getElementById('invoice-date-due').textContent = formatDate(inv.due_date);
 
-    // Render items list
-    const tbody = document.getElementById('invoice-items-detail-tbody');
+    const curr = inv.currency || 'USD';
     tbody.innerHTML = inv.items.map(item => `
       <tr>
         <td><strong>${item.description}</strong></td>
         <td style="text-align: right;">${item.quantity}</td>
-        <td style="text-align: right;">$${Number(item.unit_price).toFixed(2)}</td>
-        <td style="text-align: right; font-weight: 500;">$${Number(item.amount).toFixed(2)}</td>
+        <td style="text-align: right;">${formatCurrency(item.unit_price, curr)}</td>
+        <td style="text-align: right; font-weight: 500;">${formatCurrency(item.amount, curr)}</td>
       </tr>
     `).join('');
 
     // Summary totals
-    document.getElementById('invoice-detail-subtotal').textContent = `$${Number(inv.subtotal).toFixed(2)}`;
-    document.getElementById('invoice-detail-tax').textContent = `$${Number(inv.tax).toFixed(2)}`;
-    document.getElementById('invoice-detail-discount').textContent = `$${Number(inv.discount).toFixed(2)}`;
-    document.getElementById('invoice-detail-total').textContent = `$${Number(inv.total).toFixed(2)}`;
+    document.getElementById('invoice-detail-subtotal').textContent = formatCurrency(inv.subtotal, curr);
+    document.getElementById('invoice-detail-tax').textContent = formatCurrency(inv.tax, curr);
+    document.getElementById('invoice-detail-discount').textContent = formatCurrency(inv.discount, curr);
+    document.getElementById('invoice-detail-total').textContent = formatCurrency(inv.total, curr);
 
     openModal('detail-modal');
   } catch (err) {
@@ -271,6 +290,19 @@ document.getElementById('invoice-form')?.addEventListener('submit', async e => {
 // ── Calculations triggers ─────────────────────────────────────
 document.getElementById('tax')?.addEventListener('input', recalculateTotals);
 document.getElementById('discount')?.addEventListener('input', recalculateTotals);
+document.getElementById('currency')?.addEventListener('change', () => {
+  // Update all existing row amounts to the new currency symbol
+  const rows = document.querySelectorAll('.invoice-row-item');
+  const currencyCode = getSelectedCurrency();
+  rows.forEach(row => {
+    const qtyInput = row.querySelector('.item-qty');
+    const priceInput = row.querySelector('.item-price');
+    const q = Number(qtyInput.value) || 0;
+    const p = Number(priceInput.value) || 0;
+    row.querySelector('.item-amount').textContent = formatCurrency(q * p, currencyCode);
+  });
+  recalculateTotals();
+});
 
 // ── Search & Filters ──────────────────────────────────────────
 document.getElementById('invoice-search')?.addEventListener('input', (e) => {

@@ -79,6 +79,7 @@ export async function createInvoice(invoiceData, itemsList) {
       issued_date: invoiceData.issued_date || new Date().toISOString().split('T')[0],
       due_date: invoiceData.due_date,
       status: invoiceData.status || 'draft',
+      currency: invoiceData.currency || 'USD',
       subtotal: Number(subtotal.toFixed(2)),
       tax: Number(tax.toFixed(2)),
       discount: Number(discount.toFixed(2)),
