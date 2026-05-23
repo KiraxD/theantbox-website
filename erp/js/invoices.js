@@ -401,7 +401,7 @@ document.getElementById('btn-print-invoice')?.addEventListener('click', () => {
   window.print();
 });
 
-document.getElementById('btn-download-pdf')?.addEventListener('click', () => {
+window.downloadInvoicePDF = function() {
   const element = document.getElementById('print-area');
   const invoiceNumber = document.getElementById('invoice-title-number').textContent || 'invoice';
   
@@ -430,8 +430,15 @@ document.getElementById('btn-download-pdf')?.addEventListener('click', () => {
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   
+  if (typeof html2pdf === 'undefined') {
+    toast.error('PDF generator library is still loading. Please wait a moment or click Print instead.');
+    return;
+  }
+  
   html2pdf().set(opt).from(clone).save();
-});
+};
+
+document.getElementById('btn-download-pdf')?.addEventListener('click', window.downloadInvoicePDF);
 
 // ── Realtime Sync ─────────────────────────────────────────────
 await subscribeInvoices(() => loadInvoices());

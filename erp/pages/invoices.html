@@ -359,11 +359,11 @@
     <div class="modal-header print-btn-group" style="border-bottom:none; margin-bottom:12px;">
       <h3>Invoice Details</h3>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-secondary" id="btn-print-invoice" type="button">
+        <button class="btn btn-secondary" id="btn-print-invoice" type="button" onclick="window.print()">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Print
         </button>
-        <button class="btn btn-purple" id="btn-download-pdf" type="button" style="background-color: var(--purple); color: var(--white); display: flex; align-items: center; gap: 6px;">
+        <button class="btn btn-purple" id="btn-download-pdf" type="button" onclick="window.downloadInvoicePDF()" style="background-color: var(--purple); color: var(--white); display: flex; align-items: center; gap: 6px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download PDF
         </button>
@@ -446,7 +446,7 @@
 </div>
 
 <div class="toast-container" id="toast-container"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5IfS516Oru1JAnibmA3rPQrHguY9KCxw+gOPcAHGcNYYB1RLTRckeyeh0mBKxGXRcX9gUsApQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" referrerpolicy="no-referrer"></script>
 <script type="module" src="/erp/js/invoices.js"></script>
 </body>
 </html>
