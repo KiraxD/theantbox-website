@@ -35,6 +35,9 @@ DROP POLICY IF EXISTS "Employees can view all employees" ON public.employees;
 DROP POLICY IF EXISTS "Employees Insert Policy" ON public.employees;
 DROP POLICY IF EXISTS "Employees Update Policy" ON public.employees;
 DROP POLICY IF EXISTS "Employees Delete Policy" ON public.employees;
+DROP POLICY IF EXISTS "emps_read_all" ON public.employees;
+DROP POLICY IF EXISTS "emps_update_own" ON public.employees;
+DROP POLICY IF EXISTS "emps_admin_all" ON public.employees;
 
 -- SELECT:
 -- 1. High roles (super_admin, admin, hr, accountant, manager) can view all profiles
