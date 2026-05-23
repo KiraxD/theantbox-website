@@ -34,6 +34,7 @@ export async function requireRole(allowedRoles) {
 
   const profile = await getUserProfile(session.user.id);
   if (!profile) {
+    try { await signOut(); } catch (e) { console.error('[requireRole signOut]', e); }
     redirectToLogin('Profile not found. Contact your administrator.');
     return null;
   }
@@ -73,6 +74,7 @@ export async function bootPage({ requiredRoles = null } = {}) {
 
     const profile = await getUserProfile(session.user.id);
     if (!profile) {
+      try { await signOut(); } catch (e) { console.error('[bootPage signOut]', e); }
       redirectToLogin('Profile setup incomplete.');
       return null;
     }
@@ -103,6 +105,7 @@ export async function bootPage({ requiredRoles = null } = {}) {
     return { session, profile };
   } catch (err) {
     console.error('[bootPage]', err);
+    try { await signOut(); } catch (e) { console.error('[bootPage catch signOut]', e); }
     redirectToLogin('Authentication error. Please log in again.');
     return null;
   }
@@ -181,6 +184,8 @@ export async function handleLogout() {
 
 // ── Helpers ───────────────────────────────────────────────────
 function redirectToLogin(message = '') {
+  localStorage.removeItem('erp_session');
+  sessionStorage.removeItem('erp_profile');
   const url = new URL('/erp/index.html', window.location.origin);
   if (message) url.searchParams.set('msg', message);
   window.location.href = url.toString();

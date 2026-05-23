@@ -1044,6 +1044,17 @@ INSERT INTO public.system_settings (setting_key, setting_value, setting_type, de
   ('session_timeout_minutes', '30', 'number', 'Session timeout in minutes')
 ON CONFLICT (setting_key) DO NOTHING;
 
+-- Sync existing auth.users to public.employees if they are missing
+INSERT INTO public.employees (id, full_name, email, role, status)
+SELECT 
+  id, 
+  COALESCE(raw_user_meta_data->>'full_name', 'User'),
+  email,
+  COALESCE(raw_user_meta_data->>'role', 'employee'),
+  'active'
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;
+
 -- ============================================================
 -- END OF SCHEMA
 -- ============================================================
