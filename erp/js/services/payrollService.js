@@ -29,8 +29,13 @@ export async function getPayrollRecords({ page = 1, pageSize = 20, month = null,
     .range(from, to)
     .order('created_at', { ascending: false });
 
-  if (month && year) query = query.eq('month', toMonthKey(month, year));
-  else if (month)    query = query.like('month', `%-${String(month).padStart(2,'0')}`);
+  if (month && String(month).includes('-')) {
+    query = query.eq('month', month);
+  } else if (month && year) {
+    query = query.eq('month', toMonthKey(month, year));
+  } else if (month) {
+    query = query.like('month', `%-${String(month).padStart(2,'0')}`);
+  }
   if (employeeId)    query = query.eq('employee_id', employeeId);
 
   const { data, error, count } = await query;
