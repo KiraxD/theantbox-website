@@ -6,11 +6,16 @@
 -- ---------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.get_my_role()
 RETURNS TEXT
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 STABLE
 AS $$
-  SELECT role FROM public.employees WHERE id = auth.uid() LIMIT 1;
+DECLARE
+  user_role TEXT;
+BEGIN
+  SELECT role INTO user_role FROM public.employees WHERE id = auth.uid() LIMIT 1;
+  RETURN user_role;
+END;
 $$;
 
 -- Grant execute to authenticated users only
