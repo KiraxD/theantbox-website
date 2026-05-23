@@ -15,6 +15,7 @@ async function init() {
 
   initSidebar(); initLogout(); initThemeToggle(); initDropdowns();
   await loadReportData();
+  setupExportButtons();
 }
 
 async function loadReportData() {
@@ -102,6 +103,210 @@ async function loadReportData() {
     showToast('Failed to load reports', 'error');
     console.error(err);
   }
+}
+
+// ── Export Report Logic ──────────────────────────────────────
+async function getDetailedTasksData() {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      id,
+      title,
+      description,
+      status,
+      priority,
+      deadline,
+      created_at,
+      assignee:employees!assigned_to(full_name)
+    `)
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  
+  return (data || []).map(t => ({
+    'Task ID': t.id,
+    'Title': t.title || '',
+    'Description': t.description || '',
+    'Status': t.status || '',
+    'Priority': t.priority || '',
+    'Deadline': t.deadline ? t.deadline.split('T')[0] : '',
+    'Assigned To': t.assignee ? t.assignee.full_name : 'Unassigned',
+    'Created At': t.created_at ? t.created_at.split('T')[0] : ''
+  }));
+}
+
+async function getDetailedAttendanceData() {
+  const { data, error } = await supabase
+    .from('attendance')
+    .select(`
+      id,
+      date,
+      status,
+      clock_in,
+      clock_out,
+      note,
+      created_at,
+      employee:employees!employee_id(full_name)
+    `)
+    .order('date', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map(r => ({
+    'Attendance ID': r.id,
+    'Date': r.date || '',
+    'Employee Name': r.employee ? r.employee.full_name : 'Unknown',
+    'Status': r.status || '',
+    'Check In': r.clock_in ? new Date(r.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+    'Check Out': r.clock_out ? new Date(r.clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+    'Note': r.note || '',
+    'Created At': r.created_at ? r.created_at.split('T')[0] : ''
+  }));
+}
+
+async function getDetailedPayrollData() {
+  const { data, error } = await supabase
+    .from('payroll')
+    .select(`
+      id,
+      month,
+      base_salary,
+      bonuses,
+      deductions,
+      net_salary,
+      status,
+      paid_on,
+      created_at,
+      employee:employees!employee_id(full_name)
+    `)
+    .order('month', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map(p => ({
+    'Payroll ID': p.id,
+    'Month': p.month || '',
+    'Employee Name': p.employee ? p.employee.full_name : 'Unknown',
+    'Base Salary (₹)': Number(p.base_salary || 0),
+    'Bonuses (₹)': Number(p.bonuses || 0),
+    'Deductions (₹)': Number(p.deductions || 0),
+    'Net Salary (₹)': Number(p.net_salary || 0),
+    'Status': p.status || '',
+    'Paid Date': p.paid_on ? p.paid_on.split('T')[0] : '',
+    'Created At': p.created_at ? p.created_at.split('T')[0] : ''
+  }));
+}
+
+function downloadExcel(sheets, filename) {
+  const wb = XLSX.utils.book_new();
+  
+  Object.keys(sheets).forEach(sheetName => {
+    const data = sheets[sheetName];
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Auto-fit column widths
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      const colWidths = keys.map(key => {
+        let maxLen = key.toString().length;
+        data.forEach(row => {
+          const val = row[key];
+          if (val !== undefined && val !== null) {
+            maxLen = Math.max(maxLen, val.toString().length);
+          }
+        });
+        return { wch: maxLen + 3 };
+      });
+      ws['!cols'] = colWidths;
+    }
+    
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+  
+  XLSX.writeFile(wb, filename);
+}
+
+async function handleExport(btnId, fetchFn, fileName, sheetName) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; margin-right:6px; vertical-align: middle;"></span> Exporting...`;
+  
+  try {
+    const data = await fetchFn();
+    if (data.length === 0) {
+      showToast('No records found to export', 'info');
+      return;
+    }
+    
+    downloadExcel({ [sheetName]: data }, fileName);
+    showToast(`${sheetName} report downloaded successfully`, 'success');
+  } catch (err) {
+    showToast('Failed to export report', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
+async function handleExportAll() {
+  const btn = document.getElementById('btn-export-all');
+  if (!btn) return;
+  
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; margin-right:6px; vertical-align: middle;"></span> Exporting All...`;
+  
+  try {
+    const [tasks, attendance, payroll] = await Promise.all([
+      getDetailedTasksData(),
+      getDetailedAttendanceData(),
+      getDetailedPayrollData()
+    ]);
+    
+    downloadExcel({
+      'Tasks': tasks,
+      'Attendance': attendance,
+      'Payroll': payroll
+    }, 'detailed_system_report.xlsx');
+    
+    showToast('Consolidated system report downloaded successfully', 'success');
+  } catch (err) {
+    showToast('Failed to export reports', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
+function setupExportButtons() {
+  // Inject keyframes for loading spinner dynamically if not present
+  if (!document.getElementById('reports-spinner-style')) {
+    const style = document.createElement('style');
+    style.id = 'reports-spinner-style';
+    style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+  }
+
+  document.getElementById('btn-export-tasks')?.addEventListener('click', () => {
+    handleExport('btn-export-tasks', getDetailedTasksData, 'tasks_report.xlsx', 'Tasks');
+  });
+  
+  document.getElementById('btn-export-attendance')?.addEventListener('click', () => {
+    handleExport('btn-export-attendance', getDetailedAttendanceData, 'attendance_report.xlsx', 'Attendance');
+  });
+  
+  document.getElementById('btn-export-payroll')?.addEventListener('click', () => {
+    handleExport('btn-export-payroll', getDetailedPayrollData, 'payroll_report.xlsx', 'Payroll');
+  });
+  
+  document.getElementById('btn-export-all')?.addEventListener('click', () => {
+    handleExportAll();
+  });
 }
 
 init();
