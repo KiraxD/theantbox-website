@@ -21,6 +21,41 @@ let searchQuery = '';
 let statusFilter = '';
 let rowCount = 0;
 
+const FALLBACK_USD_RATES = {
+  USD: 1.0,
+  INR: 83.5,
+  EUR: 0.92,
+  GBP: 0.79,
+  AED: 3.67,
+  CAD: 1.36,
+  AUD: 1.51,
+  SGD: 1.35,
+  JPY: 156.0,
+  CNY: 7.24,
+  CHF: 0.91,
+  NZD: 1.63,
+  HKD: 7.81,
+  ZAR: 18.5,
+  BRL: 5.15,
+  MXN: 16.7,
+  SAR: 3.75,
+  QAR: 3.64,
+  KWD: 0.31,
+  BHD: 0.38,
+  OMR: 0.39,
+  SEK: 10.7,
+  NOK: 10.6,
+  DKK: 6.9,
+  TRY: 32.2,
+  RUB: 90.5,
+  PLN: 3.95,
+  IDR: 16000.0,
+  MYR: 4.7,
+  PHP: 58.0,
+  THB: 36.5,
+  VND: 25400.0
+};
+
 // Helper to format currency dynamically using Intl.NumberFormat
 function formatCurrency(amount, currencyCode = 'USD') {
   try {
@@ -48,10 +83,39 @@ async function loadInvoices() {
 
   try {
     // 1. Load Stats
-    const stats = await getInvoiceStats();
-    document.getElementById('stat-total-invoiced').textContent = formatCurrency(stats.totalInvoiced, 'USD');
-    document.getElementById('stat-revenue-collected').textContent = formatCurrency(stats.paidAmount, 'USD');
-    document.getElementById('stat-outstanding').textContent = formatCurrency(stats.pendingAmount, 'USD');
+    const statsData = await getInvoiceStats();
+    
+    // Fetch live exchange rates
+    let rates = FALLBACK_USD_RATES;
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.rates) {
+          rates = json.rates;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch live exchange rates, using fallbacks:', e);
+    }
+
+    const inrRate = rates['INR'] || 83.5;
+
+    // Helper to convert any amount to INR
+    const convertToINR = (amount, fromCurrency) => {
+      const currency = (fromCurrency || 'USD').toUpperCase();
+      const usdAmount = amount / (rates[currency] || 1.0);
+      return usdAmount * inrRate;
+    };
+
+    // Calculate totals in INR
+    const totalInvoicedINR = statsData.reduce((sum, inv) => sum + convertToINR(Number(inv.total) || 0, inv.currency), 0);
+    const paidAmountINR = statsData.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + convertToINR(Number(inv.total) || 0, inv.currency), 0);
+    const pendingAmountINR = statsData.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + convertToINR(Number(inv.total) || 0, inv.currency), 0);
+
+    document.getElementById('stat-total-invoiced').textContent = formatCurrency(totalInvoicedINR, 'INR');
+    document.getElementById('stat-revenue-collected').textContent = formatCurrency(paidAmountINR, 'INR');
+    document.getElementById('stat-outstanding').textContent = formatCurrency(pendingAmountINR, 'INR');
 
     // 2. Load Table
     allInvoices = await getInvoices({ status: statusFilter, search: searchQuery });

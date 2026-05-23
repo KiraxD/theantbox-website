@@ -147,23 +147,9 @@ export async function deleteInvoice(id) {
 // ── Get Invoice Stats ─────────────────────────────────────────
 export async function getInvoiceStats() {
   const supabase = await getSupabaseClient();
-  const { data, error } = await supabase.from('invoices').select('status, total');
+  const { data, error } = await supabase.from('invoices').select('status, total, currency');
   if (error) throw error;
-
-  const totalInvoiced = data.reduce((sum, inv) => sum + Number(inv.total), 0);
-  const paidCount = data.filter(inv => inv.status === 'paid').length;
-  const paidAmount = data.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + Number(inv.total), 0);
-  const pendingCount = data.filter(inv => inv.status === 'sent').length;
-  const pendingAmount = data.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + Number(inv.total), 0);
-
-  return {
-    totalCount: data.length,
-    totalInvoiced,
-    paidCount,
-    paidAmount,
-    pendingCount,
-    pendingAmount,
-  };
+  return data ?? [];
 }
 
 // ── Subscribe to Invoice updates ─────────────────────────────
