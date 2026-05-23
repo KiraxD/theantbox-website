@@ -139,7 +139,7 @@ export async function getAttendanceList({
     .from('attendance')
     .select(`
       *,
-      employee:employees(id, full_name, avatar_url, department:departments(name))
+      employee:employees!employee_id(id, full_name, avatar_url, department:departments(name))
     `, { count: 'exact' })
     .range(from, to)
     .order('date', { ascending: false });
@@ -161,7 +161,7 @@ export async function getTodaySummary() {
 
   const { data, error } = await supabase
     .from('attendance')
-    .select('employee_id, status, clock_in, clock_out, segments, total_hours, employees(full_name)')
+    .select('employee_id, status, clock_in, clock_out, segments, total_hours, employees!employee_id(full_name)')
     .eq('date', today);
 
   if (error) throw error;
@@ -263,10 +263,11 @@ export async function getLeaveRequests({ page = 1, pageSize = 20, status = '', e
   const to = from + pageSize - 1;
 
   let query = supabase
-    .from('leave_requests')
+    .from('leaves')
     .select(`
       *,
-      employee:employees!leave_requests_employee_id_fkey(id, full_name, avatar_url, department:departments(name))
+      employee:employees!employee_id(id, full_name, avatar_url, department:departments(name)),
+      leave_type:leave_types(name)
     `, { count: 'exact' })
     .range(from, to)
     .order('created_at', { ascending: false });
@@ -283,7 +284,7 @@ export async function getLeaveRequests({ page = 1, pageSize = 20, status = '', e
 export async function createLeaveRequest(payload) {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase
-    .from('leave_requests')
+    .from('leaves')
     .insert({ ...payload, status: 'pending', created_at: new Date().toISOString() })
     .select()
     .single();
@@ -296,8 +297,13 @@ export async function createLeaveRequest(payload) {
 export async function updateLeaveStatus(leaveId, status, reviewedBy) {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase
-    .from('leave_requests')
-    .update({ status, reviewed_by: reviewedBy, reviewed_at: new Date().toISOString() })
+    .from('leaves')
+    .update({ 
+      status, 
+      approved_by: reviewedBy, 
+      approval_date: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
     .eq('id', leaveId)
     .select()
     .single();

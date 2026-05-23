@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM & Pipeline — The Ant Box ERP</title>
+  <meta name="description" content="Manage customer relations, leads, pipeline stages, and client directory.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.ico?v=7" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/erp/css/main.css">
+  <link rel="stylesheet" href="/erp/css/layout.css">
+  <link rel="stylesheet" href="/erp/css/components.css">
+  <link rel="stylesheet" href="/erp/css/forms.css">
+  <link rel="stylesheet" href="/erp/css/tables.css">
+  <link rel="stylesheet" href="/erp/css/modals.css">
+  <link rel="stylesheet" href="/erp/css/pages.css">
+  <link rel="stylesheet" href="/erp/css/darkmode.css">
+  <style>
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1px;
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .tab-btn:hover {
+      color: var(--black);
+    }
+    .tab-btn.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+      font-weight: 600;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    
+    /* Horizontal scrolling for Kanban Board */
+    .kanban-scroll-container {
+      overflow-x: auto;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .kanban-board-custom {
+      display: flex;
+      gap: 16px;
+      width: max-content;
+      min-width: 100%;
+      align-items: start;
+    }
+    .kanban-board-custom .kanban-col {
+      width: 280px;
+      flex-shrink: 0;
+    }
+    
+    /* Timeline / Interaction list styles */
+    .interaction-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .interaction-item {
+      position: relative;
+      padding-left: 20px;
+      border-left: 2px solid var(--line);
+    }
+    .interaction-item::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      background: var(--purple);
+      border: 2px solid var(--white);
+    }
+    .interaction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .interaction-subject {
+      font-weight: 600;
+      color: var(--black);
+      font-size: 13px;
+    }
+    .interaction-date {
+      color: var(--muted);
+    }
+    .interaction-body {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+      background: var(--bg-shade);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      margin-top: 4px;
+    }
+    .interaction-meta {
+      font-size: 11px;
+      color: var(--muted-light);
+      margin-top: 4px;
+    }
+  </style>
+  <script>
+    window.__ERP_CONFIG__ = { supabaseUrl: 'https://sojqbyjioukfchdmstnz.supabase.co', supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvanFieWppb3VrZmNoZG1zdG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDEwMDUsImV4cCI6MjA5NDg3NzAwNX0.UUxgLB33WK5sB5q8gY4bbgzMFrAMurU-_nh7qhAlb6w' };
+    const t = localStorage.getItem('erp_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/erp/dashboard.html" class="sidebar-brand-link">
+        <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box" class="sidebar-brand-img">
+        <span class="sidebar-brand-name">AntBox ERP</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+                    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/erp/dashboard.html" class="nav-item">Dashboard</a>
+      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee">People</a>
+      <a href="/erp/pages/attendance.html" class="nav-item">Attendance</a>
+      <a href="/erp/pages/tasks.html" class="nav-item">Tasks</a>
+      <a href="/erp/pages/crm.html" class="nav-item active">CRM</a>
+      <a href="/erp/pages/inventory.html" class="nav-item">Inventory</a>
+      <div class="nav-section-label" data-min-role="accountant">Finance</div>
+      <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr">Payroll</a>
+      <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="accountant">Invoices</a>
+      <a href="/erp/pages/sales.html" class="nav-item">Sales & Finance</a>
+      <div class="nav-section-label" data-min-role="manager">Analytics</div>
+      <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager">Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/erp/pages/settings.html" class="nav-item">Settings</a>
+      <a href="/erp/pages/admin.html" class="nav-item" data-min-role="admin">Admin Console</a>
+    </nav>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-user">
+      <div class="avatar avatar-md avatar-purple" id="sidebar-avatar">?</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebar-user-name">Loading…</span>
+        <span class="sidebar-user-role" id="sidebar-user-role"></span>
+      </div>
+      <button class="btn btn-ghost btn-icon sidebar-logout" data-logout aria-label="Sign out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ─────────────────────────────────── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-icon-btn" id="sidebar-toggle" aria-label="Toggle sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-breadcrumb">
+          <span>CRM</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+          <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="topbar-user" id="topbar-user" data-dropdown-trigger="user-menu">
+          <div class="avatar avatar-sm avatar-purple" id="topbar-avatar">?</div>
+          <span class="topbar-user-copy">
+            <span id="topbar-user-name">Loading</span>
+            <span class="topbar-user-role" id="topbar-user-role"></span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="/erp/pages/settings.html">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" data-logout>Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Customer Relations & Pipeline</h1>
+          <p class="page-desc">Manage your pipeline, log client calls, won deals, and manage customer base.</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-purple" id="btn-add-lead">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Lead
+          </button>
+          <button class="btn btn-secondary" id="btn-add-client">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Client
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="leads-panel">Leads Pipeline</button>
+        <button class="tab-btn" data-tab="clients-panel">Clients Directory</button>
+      </div>
+
+      <!-- ── LEADS PIPELINE PANEL ────────────────── -->
+      <div class="tab-panel active" id="leads-panel">
+        <div class="table-filters" style="margin-bottom:16px;">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="lead-search" placeholder="Search leads by name, email, company...">
+            </div>
+            <select class="select" id="lead-owner-filter">
+              <option value="">All Owners</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="leads-count">Loading stats...</span>
+          </div>
+        </div>
+
+        <div class="kanban-scroll-container">
+          <div class="kanban-board-custom" id="kanban-board">
+            <!-- Render pipeline columns via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLIENTS DIRECTORY PANEL ──────────────── -->
+      <div class="tab-panel" id="clients-panel">
+        <div class="table-filters" style="margin-bottom:16px;">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="client-search" placeholder="Search clients by name, email...">
+            </div>
+            <select class="select" id="client-status-filter">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="clients-count">Loading stats...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th width="120" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody">
+              <!-- Render clients via JS -->
+            </tbody>
+          </table>
+          <div class="pagination" id="clients-pagination"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Add/Edit Lead Modal ────────────────────────────── -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 id="lead-modal-title">Add Lead</h3>
+      <button class="modal-close" data-close-modal="lead-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="lead-form" class="form-grid">
+        <div class="form-group span-2">
+          <label class="form-label" for="lead_name">Contact Name <span class="text-danger">*</span></label>
+          <input type="text" id="lead_name" name="name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_email">Email <span class="text-danger">*</span></label>
+          <input type="email" id="lead_email" name="email" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_phone">Phone</label>
+          <input type="text" id="lead_phone" name="phone" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_company">Company</label>
+          <input type="text" id="lead_company" name="company" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_designation">Designation</label>
+          <input type="text" id="lead_designation" name="designation" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_industry">Industry</label>
+          <input type="text" id="lead_industry" name="industry" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_source">Source</label>
+          <select id="lead_source" name="source" class="select">
+            <option value="Direct">Direct</option>
+            <option value="Website">Website</option>
+            <option value="Referral">Referral</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Email Campaign">Email Campaign</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_assigned">Assigned To</label>
+          <select id="lead_assigned" name="assigned_to" class="select">
+            <option value="">Unassigned</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lead_status">Status</label>
+          <select id="lead_status" name="status" class="select">
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="proposal_sent">Proposal Sent</option>
+            <option value="negotiation">In Negotiation</option>
+            <option value="won">Won (Deal Closed)</option>
+            <option value="lost">Lost</option>
+          </select>
+        </div>
+        <div class="form-group span-2 flex justify-end mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="lead-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add/Edit Client Modal ────────────────────────────── -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 id="client-modal-title">Add Client</h3>
+      <button class="modal-close" data-close-modal="client-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="client-form" class="form-grid">
+        <div class="form-group span-2">
+          <label class="form-label" for="cli_name">Client Name <span class="text-danger">*</span></label>
+          <input type="text" id="cli_name" name="name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_email">Email</label>
+          <input type="email" id="cli_email" name="email" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_phone">Phone</label>
+          <input type="text" id="cli_phone" name="phone" class="input">
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="cli_address">Street Address</label>
+          <input type="text" id="cli_address" name="address" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_city">City</label>
+          <input type="text" id="cli_city" name="city" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_state">State / Province</label>
+          <input type="text" id="cli_state" name="state" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_postal">Postal Code</label>
+          <input type="text" id="cli_postal" name="postal_code" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cli_country">Country</label>
+          <input type="text" id="cli_country" name="country" class="input">
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="cli_status">Status</label>
+          <select id="cli_status" name="status" class="select">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group span-2 flex justify-end mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="client-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Details / Interactions Sidebar Modal ──────────────── -->
+<div class="modal-overlay" id="details-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 650px;">
+    <div class="modal-header">
+      <h3 id="details-modal-title">Record Details</h3>
+      <button class="modal-close" data-close-modal="details-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Quick Info Card -->
+      <div id="details-info-card" style="padding: 16px; border-radius: var(--radius-lg); background: var(--bg-shade); border: 1px solid var(--line); margin-bottom: 24px;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- Interaction Form -->
+      <h4 style="margin-bottom: 12px; font-family: var(--serif); font-size:18px;">Log New Interaction</h4>
+      <form id="interaction-form" class="form-grid" style="margin-bottom: 24px;">
+        <input type="hidden" id="interaction_lead_id" name="lead_id">
+        <input type="hidden" id="interaction_client_id" name="client_id">
+        
+        <div class="form-group">
+          <label class="form-label" for="int_type">Type <span class="text-danger">*</span></label>
+          <select id="int_type" name="interaction_type" class="select" required>
+            <option value="Call">Phone Call</option>
+            <option value="Email">Email Sent/Received</option>
+            <option value="Meeting">In-Person/Virtual Meeting</option>
+            <option value="Proposal">Proposal Submitted</option>
+            <option value="Other">Other Log</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="int_subject">Subject <span class="text-danger">*</span></label>
+          <input type="text" id="int_subject" name="subject" class="input" placeholder="e.g. Initial intro, pricing discussion" required>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="int_notes">Notes</label>
+          <textarea id="int_notes" name="notes" class="input" rows="3" placeholder="Summary of what was discussed..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="int_outcome">Outcome</label>
+          <input type="text" id="int_outcome" name="outcome" class="input" placeholder="e.g. Interested, scheduled follow up">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="int_next">Next Steps</label>
+          <input type="text" id="int_next" name="next_steps" class="input" placeholder="e.g. Email quote by Monday">
+        </div>
+        <div class="form-group span-2 flex justify-end">
+          <button type="submit" class="btn btn-purple">Log Interaction</button>
+        </div>
+      </form>
+
+      <!-- History list -->
+      <h4 style="margin-bottom: 8px; font-family: var(--serif); font-size:18px;">Interaction History</h4>
+      <div id="interaction-history-list" class="interaction-timeline">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script type="module" src="/erp/js/crm.js"></script>
+</body>
+</html>

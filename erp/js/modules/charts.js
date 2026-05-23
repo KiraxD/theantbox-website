@@ -78,8 +78,11 @@ export function createAreaChart(elementId, { series, categories, title = '', col
       },
     },
     colors: colors || PALETTE,
-    title: title ? { text: title, style: { fontSize: '14px', fontWeight: '600', color: BRAND.black } } : undefined,
   };
+
+  if (title) {
+    options.title = { text: title, style: { fontSize: '14px', fontWeight: '600', color: BRAND.black } };
+  }
 
   const chart = new ApexCharts(document.getElementById(elementId), options);
   chart.render();

@@ -2,6 +2,7 @@ import { bootPage } from './modules/authGuard.js';
 import getSupabaseClient from './services/supabaseClient.js';
 let supabase;
 import * as attendanceService from './services/attendanceService.js';
+import * as leaveService from './services/leaveService.js';
 import { openModal, closeModal, setupModalClosers } from './modules/modal.js';
 import { showToast } from './modules/toast.js';
 import { initTheme, initSidebar, initLogout, initThemeToggle, initDropdowns } from './modules/ui.js';
@@ -25,6 +26,17 @@ async function init() {
   initSidebar(); initLogout(); initThemeToggle(); initDropdowns();
   setupModalClosers();
   setupUI();
+  
+  // Populate leave types dropdown dynamically from DB
+  try {
+    const types = await leaveService.getLeaveTypes();
+    const selectEl = document.getElementById('leave_type');
+    if (selectEl && types.length > 0) {
+      selectEl.innerHTML = types.map(t => `<option value="${t.id}">${t.name} (Max ${t.days_per_year} days)</option>`).join('');
+    }
+  } catch (err) {
+    console.error('Error populating leave types:', err);
+  }
   
   await loadTodayRecord();
   await loadMonthlyRecords();
@@ -269,7 +281,7 @@ async function loadMonthlyRecords() {
   try {
     let query = supabase
       .from('attendance')
-      .select('*, employees(full_name)')
+      .select('*, employees!employee_id(full_name)')
       .gte('date', `${currentMonth}-01`)
       .lte('date', `${currentMonth}-31`)
       .order('date', { ascending: false });
@@ -437,8 +449,8 @@ async function loadLeaveRequests() {
   try {
     const isAdmin = ['hr', 'manager', 'super_admin', 'admin'].includes(currentUser.role);
     let query = supabase
-      .from('leave_requests')
-      .select('*, employee:employees!leave_requests_employee_id_fkey(full_name)')
+      .from('leaves')
+      .select('*, employee:employees!employee_id(full_name), leave_type:leave_types(name)')
       .order('created_at', { ascending: false });
 
     if (isAdmin) {
@@ -533,7 +545,7 @@ function renderLeaveRequests() {
       <div style="display:flex; flex-direction: column;">
         <span class="text-black fw-600" style="font-size: 15px;">${empName}</span>
         <span class="text-muted text-sm" style="margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-          ${req.leave_type} | ${dateRange} ${badgeHtml}
+          ${req.leave_type?.name || 'Leave'} | ${dateRange} ${badgeHtml}
         </span>
       </div>
       <div style="color: var(--muted-light);">
@@ -577,7 +589,7 @@ function openReviewModal(req) {
   detailsEl.innerHTML = `
     <div style="background: var(--beige-dark); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
       <p style="margin-bottom: 8px;"><strong>Employee:</strong> <span style="float:right;">${empName}</span></p>
-      <p style="margin-bottom: 8px;"><strong>Leave Type:</strong> <span style="float:right;">${req.leave_type}</span></p>
+      <p style="margin-bottom: 8px;"><strong>Leave Type:</strong> <span style="float:right;">${req.leave_type?.name || 'Leave'}</span></p>
       <p style="margin-bottom: 8px;"><strong>Start Date:</strong> <span style="float:right;">${start}</span></p>
       <p style="margin-bottom: 8px;"><strong>End Date:</strong> <span style="float:right;">${end}</span></p>
       ${statusHtml}
@@ -607,16 +619,13 @@ async function handleApplyLeave(e) {
   const reason = formData.get('leave_reason');
 
   try {
-    const { error } = await supabase.from('leave_requests').insert({
+    await leaveService.createLeaveRequest({
       employee_id: currentUser.id,
-      leave_type,
+      leave_type_id: leave_type,
       start_date,
       end_date,
-      reason,
-      status: 'pending'
+      reason
     });
-
-    if (error) throw error;
 
     showToast('success', 'Leave request submitted successfully');
     closeModal('apply-leave-modal');
@@ -631,15 +640,7 @@ async function handleReviewLeave(status) {
   if (!currentReviewLeaveId) return;
   
   try {
-    const { error } = await supabase.from('leave_requests')
-      .update({ 
-        status: status,
-        reviewed_by: currentUser.id,
-        reviewed_at: new Date().toISOString()
-      })
-      .eq('id', currentReviewLeaveId);
-
-    if (error) throw error;
+    await leaveService.updateLeaveStatus(currentReviewLeaveId, status, '');
 
     showToast('success', `Leave request ${status}`);
     closeModal('review-leave-modal');
@@ -702,7 +703,7 @@ async function loadTodayRecord() {
     .select('*')
     .eq('employee_id', currentUser.id)
     .eq('date', today)
-    .single();
+    .maybeSingle();
 
   if (data) {
     todayRecord = data;

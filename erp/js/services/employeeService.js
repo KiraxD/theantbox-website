@@ -81,7 +81,7 @@ export async function getEmployee(id) {
     .select(`
       *,
       department:departments(id, name),
-      documents:employee_documents(id, file_name, file_url, doc_type, uploaded_at)
+      documents:employee_documents!employee_id(id, file_name, file_url, doc_type, uploaded_at)
     `)
     .eq('id', id)
     .single();

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales & Finance — The Ant Box ERP</title>
+  <meta name="description" content="Manage quotations, sales orders, purchase orders, vendors, and general ledger.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.ico?v=7" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/erp/css/main.css">
+  <link rel="stylesheet" href="/erp/css/layout.css">
+  <link rel="stylesheet" href="/erp/css/components.css">
+  <link rel="stylesheet" href="/erp/css/forms.css">
+  <link rel="stylesheet" href="/erp/css/tables.css">
+  <link rel="stylesheet" href="/erp/css/modals.css">
+  <link rel="stylesheet" href="/erp/css/pages.css">
+  <link rel="stylesheet" href="/erp/css/darkmode.css">
+  <style>
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1px;
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .tab-btn:hover {
+      color: var(--black);
+    }
+    .tab-btn.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+      font-weight: 600;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Financial Overview Cards */
+    .finance-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .finance-card {
+      background: var(--bg-shade);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    .finance-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .finance-card-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .finance-card-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--black);
+      font-family: var(--serif);
+    }
+    .finance-card-desc {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .finance-card.profit .finance-card-value {
+      color: var(--emerald-600);
+    }
+    [data-theme="dark"] .finance-card.profit .finance-card-value {
+      color: var(--emerald-400);
+    }
+
+    /* Item Lines Table in Modal */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .items-table th, .items-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+    .items-table th {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .items-table td input {
+      width: 100%;
+    }
+    .items-table-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .totals-summary {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+      border-top: 1px dashed var(--line);
+      padding-top: 16px;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      width: 250px;
+      font-size: 14px;
+    }
+    .totals-row.grand-total {
+      font-weight: 700;
+      font-size: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      color: var(--purple);
+    }
+  </style>
+  <script>
+    window.__ERP_CONFIG__ = { supabaseUrl: 'https://sojqbyjioukfchdmstnz.supabase.co', supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvanFieWppb3VrZmNoZG1zdG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDEwMDUsImV4cCI6MjA5NDg3NzAwNX0.UUxgLB33WK5sB5q8gY4bbgzMFrAMurU-_nh7qhAlb6w' };
+    const t = localStorage.getItem('erp_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/erp/dashboard.html" class="sidebar-brand-link">
+        <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box" class="sidebar-brand-img">
+        <span class="sidebar-brand-name">AntBox ERP</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+                    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/erp/dashboard.html" class="nav-item">Dashboard</a>
+      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee">People</a>
+      <a href="/erp/pages/attendance.html" class="nav-item">Attendance</a>
+      <a href="/erp/pages/tasks.html" class="nav-item">Tasks</a>
+      <a href="/erp/pages/crm.html" class="nav-item">CRM</a>
+      <a href="/erp/pages/inventory.html" class="nav-item">Inventory</a>
+      <div class="nav-section-label" data-min-role="accountant">Finance</div>
+      <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr">Payroll</a>
+      <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="accountant">Invoices</a>
+      <a href="/erp/pages/sales.html" class="nav-item active">Sales & Finance</a>
+      <div class="nav-section-label" data-min-role="manager">Analytics</div>
+      <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager">Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/erp/pages/settings.html" class="nav-item">Settings</a>
+      <a href="/erp/pages/admin.html" class="nav-item" data-min-role="admin">Admin Console</a>
+    </nav>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-user">
+      <div class="avatar avatar-md avatar-purple" id="sidebar-avatar">?</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebar-user-name">Loading…</span>
+        <span class="sidebar-user-role" id="sidebar-user-role"></span>
+      </div>
+      <button class="btn btn-ghost btn-icon sidebar-logout" data-logout aria-label="Sign out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ─────────────────────────────────── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-icon-btn" id="sidebar-toggle" aria-label="Toggle sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-breadcrumb">
+          <span>Sales & Finance</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+          <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="topbar-user" id="topbar-user" data-dropdown-trigger="user-menu">
+          <div class="avatar avatar-sm avatar-purple" id="topbar-avatar">?</div>
+          <span class="topbar-user-copy">
+            <span id="topbar-user-name">Loading</span>
+            <span class="topbar-user-role" id="topbar-user-role"></span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="/erp/pages/settings.html">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" data-logout>Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Sales & Finance Manager</h1>
+          <p class="page-desc">Handle customer quotes, sales orders, vendor procurement orders, and review general ledger logs.</p>
+        </div>
+        <div class="page-header-actions" id="page-action-container">
+          <!-- Dynamic Action Buttons depending on the active tab -->
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="quotations-panel">Quotations</button>
+        <button class="tab-btn" data-tab="salesorders-panel">Sales Orders</button>
+        <button class="tab-btn" data-tab="purchaseorders-panel">Purchase Orders</button>
+        <button class="tab-btn" data-tab="vendors-panel">Vendors Directory</button>
+        <button class="tab-btn" data-tab="ledger-panel">General Ledger</button>
+      </div>
+
+      <!-- ── QUOTATIONS PANEL ────────────────── -->
+      <div class="tab-panel active" id="quotations-panel">
+        <div class="table-filters">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="quote-search" placeholder="Search quotation number...">
+            </div>
+            <select class="select" id="quote-status-filter">
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="accepted">Accepted</option>
+              <option value="declined">Declined</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="quotes-count">Loading...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Quote Number</th>
+                <th>Client</th>
+                <th>Valid Until</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th width="120" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-tbody">
+              <!-- JS Render -->
+            </tbody>
+          </table>
+          <div class="pagination" id="quotes-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ── SALES ORDERS PANEL ──────────────── -->
+      <div class="tab-panel" id="salesorders-panel">
+        <div class="table-filters">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="so-search" placeholder="Search order number...">
+            </div>
+            <select class="select" id="so-status-filter">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="so-count">Loading...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order Number</th>
+                <th>Client</th>
+                <th>Order Date</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th width="120" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="so-tbody">
+              <!-- JS Render -->
+            </tbody>
+          </table>
+          <div class="pagination" id="so-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ── PURCHASE ORDERS PANEL ────────────── -->
+      <div class="tab-panel" id="purchaseorders-panel">
+        <div class="table-filters">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="po-search" placeholder="Search PO number...">
+            </div>
+            <select class="select" id="po-status-filter">
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="ordered">Ordered</option>
+              <option value="received">Received</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="po-count">Loading...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>PO Number</th>
+                <th>Vendor</th>
+                <th>Order Date</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th width="120" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="po-tbody">
+              <!-- JS Render -->
+            </tbody>
+          </table>
+          <div class="pagination" id="po-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ── VENDORS DIRECTORY PANEL ──────────── -->
+      <div class="tab-panel" id="vendors-panel">
+        <div class="table-filters">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="vendor-search" placeholder="Search vendor name or email...">
+            </div>
+            <select class="select" id="vendor-status-filter">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="blocked">Blocked</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="vendor-count">Loading...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Vendor Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Contact Person</th>
+                <th>GSTIN</th>
+                <th>Status</th>
+                <th width="120" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendors-tbody">
+              <!-- JS Render -->
+            </tbody>
+          </table>
+          <div class="pagination" id="vendors-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ── GENERAL LEDGER PANEL ─────────────── -->
+      <div class="tab-panel" id="ledger-panel">
+        <!-- Financial Metrics Grid -->
+        <div class="finance-overview">
+          <div class="finance-card">
+            <span class="finance-card-label">Total Revenue</span>
+            <span class="finance-card-value" id="ledger-revenue">₹0.00</span>
+            <span class="finance-card-desc">Credits logged to accounts</span>
+          </div>
+          <div class="finance-card">
+            <span class="finance-card-label">Total Expenses</span>
+            <span class="finance-card-value" id="ledger-expenses" style="color:var(--danger);">₹0.00</span>
+            <span class="finance-card-desc">Debits logged to accounts</span>
+          </div>
+          <div class="finance-card profit">
+            <span class="finance-card-label">Net Profit / Margin</span>
+            <span class="finance-card-value" id="ledger-profit">₹0.00</span>
+            <span class="finance-card-desc">Net operating income</span>
+          </div>
+        </div>
+
+        <div class="table-filters">
+          <div class="table-filter-group">
+            <div class="input-wrap search-input">
+              <svg class="input-icon-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="input input-has-left" id="ledger-search" placeholder="Search account or description...">
+            </div>
+            <select class="select" id="ledger-type-filter">
+              <option value="">All Entry Types</option>
+              <option value="credit">Credit (Inflow)</option>
+              <option value="debit">Debit (Outflow)</option>
+            </select>
+          </div>
+          <div class="table-filter-actions">
+            <span class="text-sm text-muted" id="ledger-count">Loading...</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Transaction Date</th>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Reference</th>
+                <th>Logged By</th>
+              </tr>
+            </thead>
+            <tbody id="ledger-tbody">
+              <!-- JS Render -->
+            </tbody>
+          </table>
+          <div class="pagination" id="ledger-pagination"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── Quotation Modal ───────────────────────────────── -->
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 id="quote-modal-title">Create Quotation</h3>
+      <button class="modal-close" data-close-modal="quote-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="quote-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="quote_client">Client <span class="text-danger">*</span></label>
+            <select id="quote_client" name="client_id" class="select" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="quote_valid_until">Valid Until <span class="text-danger">*</span></label>
+            <input type="date" id="quote_valid_until" name="valid_until" class="input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="quote_number">Quote Number</label>
+            <input type="text" id="quote_number" name="quotation_number" class="input" placeholder="Auto-generated if left blank">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="quote_status">Status</label>
+            <select id="quote_status" name="status" class="select">
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="accepted">Accepted</option>
+              <option value="declined">Declined</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="margin:0; font-family: var(--serif); font-size: 16px;">Line Items</h4>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-quote-add-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Line
+          </button>
+        </div>
+
+        <table class="items-table" id="quote-items-table">
+          <thead>
+            <tr>
+              <th>Description <span class="text-danger">*</span></th>
+              <th width="100">Quantity <span class="text-danger">*</span></th>
+              <th width="150">Unit Price (₹) <span class="text-danger">*</span></th>
+              <th width="150">Total (₹)</th>
+              <th width="60"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+
+        <div class="totals-summary">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span id="quote-calc-subtotal">₹0.00</span>
+          </div>
+          <div class="totals-row">
+            <span>Tax (GST 18%):</span>
+            <span id="quote-calc-tax">₹0.00</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>Grand Total:</span>
+            <span id="quote-calc-total">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end mt-4 pt-4" style="border-top:1px solid var(--line);">
+          <button type="button" class="btn btn-secondary" data-close-modal="quote-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Quotation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sales Order Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="so-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 id="so-modal-title">Create Sales Order</h3>
+      <button class="modal-close" data-close-modal="so-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="so-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="so_client">Client <span class="text-danger">*</span></label>
+            <select id="so_client" name="client_id" class="select" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="so_date">Order Date <span class="text-danger">*</span></label>
+            <input type="date" id="so_date" name="order_date" class="input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="so_number">Order Number</label>
+            <input type="text" id="so_number" name="order_number" class="input" placeholder="Auto-generated if left blank">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="so_status">Status</label>
+            <select id="so_status" name="status" class="select">
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="margin:0; font-family: var(--serif); font-size: 16px;">Line Items</h4>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-so-add-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Line
+          </button>
+        </div>
+
+        <table class="items-table" id="so-items-table">
+          <thead>
+            <tr>
+              <th>Description <span class="text-danger">*</span></th>
+              <th width="100">Quantity <span class="text-danger">*</span></th>
+              <th width="150">Unit Price (₹) <span class="text-danger">*</span></th>
+              <th width="150">Total (₹)</th>
+              <th width="60"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+
+        <div class="totals-summary">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span id="so-calc-subtotal">₹0.00</span>
+          </div>
+          <div class="totals-row">
+            <span>Tax (GST 18%):</span>
+            <span id="so-calc-tax">₹0.00</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>Grand Total:</span>
+            <span id="so-calc-total">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end mt-4 pt-4" style="border-top:1px solid var(--line);">
+          <button type="button" class="btn btn-secondary" data-close-modal="so-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Sales Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Purchase Order Modal ──────────────────────────── -->
+<div class="modal-overlay" id="po-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 id="po-modal-title">Create Purchase Order</h3>
+      <button class="modal-close" data-close-modal="po-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="po-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="po_vendor">Vendor <span class="text-danger">*</span></label>
+            <select id="po_vendor" name="vendor_id" class="select" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="po_date">Order Date <span class="text-danger">*</span></label>
+            <input type="date" id="po_date" name="order_date" class="input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="po_number">PO Number</label>
+            <input type="text" id="po_number" name="po_number" class="input" placeholder="Auto-generated if left blank">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="po_status">Status</label>
+            <select id="po_status" name="status" class="select">
+              <option value="draft">Draft</option>
+              <option value="ordered">Ordered</option>
+              <option value="received">Received</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="margin:0; font-family: var(--serif); font-size: 16px;">Line Items</h4>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-po-add-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Line
+          </button>
+        </div>
+
+        <table class="items-table" id="po-items-table">
+          <thead>
+            <tr>
+              <th>Description <span class="text-danger">*</span></th>
+              <th width="100">Quantity <span class="text-danger">*</span></th>
+              <th width="150">Unit Price (₹) <span class="text-danger">*</span></th>
+              <th width="150">Total (₹)</th>
+              <th width="60"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+
+        <div class="totals-summary">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span id="po-calc-subtotal">₹0.00</span>
+          </div>
+          <div class="totals-row">
+            <span>Tax (GST 18%):</span>
+            <span id="po-calc-tax">₹0.00</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>Grand Total:</span>
+            <span id="po-calc-total">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end mt-4 pt-4" style="border-top:1px solid var(--line);">
+          <button type="button" class="btn btn-secondary" data-close-modal="po-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Purchase Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Vendor Modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="vendor-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 650px;">
+    <div class="modal-header">
+      <h3 id="vendor-modal-title">Add Vendor</h3>
+      <button class="modal-close" data-close-modal="vendor-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="vendor-form" class="form-grid">
+        <div class="form-group span-2">
+          <label class="form-label" for="v_name">Vendor Name <span class="text-danger">*</span></label>
+          <input type="text" id="v_name" name="name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_email">Email</label>
+          <input type="email" id="v_email" name="email" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_phone">Phone</label>
+          <input type="text" id="v_phone" name="phone" class="input">
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="v_address">Street Address</label>
+          <input type="text" id="v_address" name="address" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_city">City</label>
+          <input type="text" id="v_city" name="city" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_state">State</label>
+          <input type="text" id="v_state" name="state" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_postal">Postal Code</label>
+          <input type="text" id="v_postal" name="postal_code" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_country">Country</label>
+          <input type="text" id="v_country" name="country" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_gstin">GSTIN</label>
+          <input type="text" id="v_gstin" name="gstin" class="input" placeholder="e.g. 22AAAAA0000A1Z5">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_pan">PAN Number</label>
+          <input type="text" id="v_pan" name="pan_number" class="input" placeholder="e.g. ABCDE1234F">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_contact_name">Contact Person Name</label>
+          <input type="text" id="v_contact_name" name="contact_person_name" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_contact_phone">Contact Person Phone</label>
+          <input type="text" id="v_contact_phone" name="contact_person_phone" class="input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_website">Website</label>
+          <input type="text" id="v_website" name="website" class="input" placeholder="e.g. https://vendor.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_payment_terms">Payment Terms</label>
+          <select id="v_payment_terms" name="payment_terms" class="select">
+            <option value="Net 30">Net 30</option>
+            <option value="Net 15">Net 15</option>
+            <option value="Net 60">Net 60</option>
+            <option value="Due on Receipt">Due on Receipt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_credit_rating">Credit Rating</label>
+          <select id="v_credit_rating" name="credit_rating" class="select">
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v_status">Status</label>
+          <select id="v_status" name="status" class="select">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
+        <div class="form-group span-2 flex justify-end mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="vendor-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Save Vendor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Ledger Entry Modal ────────────────────────────── -->
+<div class="modal-overlay" id="ledger-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3 id="ledger-modal-title">Log Ledger Entry</h3>
+      <button class="modal-close" data-close-modal="ledger-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="ledger-form" class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="l_date">Transaction Date <span class="text-danger">*</span></label>
+          <input type="date" id="l_date" name="transaction_date" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="l_type">Entry Type <span class="text-danger">*</span></label>
+          <select id="l_type" name="entry_type" class="select" required>
+            <option value="credit">Credit (Inflow)</option>
+            <option value="debit">Debit (Outflow)</option>
+          </select>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="l_account">Account Name <span class="text-danger">*</span></label>
+          <input type="text" id="l_account" name="account_name" class="input" placeholder="e.g. Sales Revenue, Procurement Expense, Rent" required>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="l_amount">Amount (₹) <span class="text-danger">*</span></label>
+          <input type="number" id="l_amount" name="amount" class="input" min="0" step="0.01" required>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label" for="l_desc">Description</label>
+          <textarea id="l_desc" name="description" class="input" rows="3" placeholder="Additional transaction notes..."></textarea>
+        </div>
+        <div class="form-group span-2 flex justify-end mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="ledger-modal" style="margin-right:12px;">Cancel</button>
+          <button type="submit" class="btn btn-purple">Log Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Transaction Details Modal ────────────────────── -->
+<div class="modal-overlay" id="tx-details-modal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3 id="tx-details-title">Transaction Details</h3>
+      <button class="modal-close" data-close-modal="tx-details-modal" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="tx-details-body">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script type="module" src="/erp/js/sales.js"></script>
+</body>
+</html>

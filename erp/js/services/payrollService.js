@@ -24,7 +24,7 @@ export async function getPayrollRecords({ page = 1, pageSize = 20, month = null,
     .from('payroll')
     .select(`
       *,
-      employee:employees(id, full_name, avatar_url, designation, department:departments(name))
+      employee:employees!employee_id(id, full_name, avatar_url, designation, department:departments(name))
     `, { count: 'exact' })
     .range(from, to)
     .order('created_at', { ascending: false });
@@ -45,7 +45,7 @@ export async function getPayrollRecord(id) {
     .from('payroll')
     .select(`
       *,
-      employee:employees(*, department:departments(name))
+      employee:employees!employee_id(*, department:departments(name))
     `)
     .eq('id', id)
     .single();

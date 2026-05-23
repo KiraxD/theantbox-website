@@ -268,7 +268,7 @@ async function getPendingLeavesCount() {
   const supabase = await getSupabaseClient();
   const isAdmin = ['hr', 'manager', 'super_admin', 'admin'].includes(ctx.profile.role);
   let query = supabase
-    .from('leave_requests')
+    .from('leaves')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'pending');
 
@@ -415,7 +415,7 @@ async function loadActivity() {
     // Recent clock-ins
     const { data: attRows } = await supabase
       .from('attendance')
-      .select('clock_in, clock_out, status, date, employees(full_name)')
+      .select('clock_in, clock_out, status, date, employees!employee_id(full_name)')
       .not('clock_in', 'is', null)
       .order('clock_in', { ascending: false })
       .limit(5);
@@ -484,8 +484,12 @@ async function loadPendingApprovals() {
       if (titleEl) titleEl.textContent = 'Leave Approvals';
       
       const { data } = await supabase
-        .from('leave_requests')
-        .select(`*, employee:employees!leave_requests_employee_id_fkey(full_name, avatar_url)`)
+        .from('leaves')
+        .select(`
+          *,
+          employee:employees!employee_id(full_name, avatar_url),
+          leave_type:leave_types(name)
+        `)
         .or(`employee_id.eq.${ctx.profile.id},status.eq.pending`)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -497,6 +501,7 @@ async function loadPendingApprovals() {
 
       list.innerHTML = data.map(req => {
         const isOwnRequest = req.employee_id === ctx.profile.id;
+        const leaveTypeName = req.leave_type?.name || 'Leave';
         if (isOwnRequest) {
           let badgeClass = 'badge-secondary';
           let statusText = 'Pending';
@@ -518,7 +523,7 @@ async function loadPendingApprovals() {
                 </div>
                 <div class="approval-info">
                   <strong>You (My Request)</strong>
-                  <span>${req.leave_type || 'Leave'} · ${formatDate(req.start_date)} – ${formatDate(req.end_date)}</span>
+                  <span>${leaveTypeName} · ${formatDate(req.start_date)} – ${formatDate(req.end_date)}</span>
                 </div>
               </div>
               <div>
@@ -534,7 +539,7 @@ async function loadPendingApprovals() {
               </div>
               <div class="approval-info">
                 <strong>${req.employee?.full_name || 'Unknown'}</strong>
-                <span>${req.leave_type || 'Leave'} · ${formatDate(req.start_date)} – ${formatDate(req.end_date)}</span>
+                <span>${leaveTypeName} · ${formatDate(req.start_date)} – ${formatDate(req.end_date)}</span>
               </div>
               <div class="approval-actions">
                 <button class="btn btn-sm btn-success" data-approve="${req.id}">Approve</button>
@@ -556,8 +561,12 @@ async function loadPendingApprovals() {
       if (titleEl) titleEl.textContent = 'My Leave Requests';
       
       const { data } = await supabase
-        .from('leave_requests')
-        .select(`*, employee:employees!leave_requests_employee_id_fkey(full_name, avatar_url)`)
+        .from('leaves')
+        .select(`
+          *,
+          employee:employees!employee_id(full_name, avatar_url),
+          leave_type:leave_types(name)
+        `)
         .eq('employee_id', ctx.profile.id)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -581,6 +590,8 @@ async function loadPendingApprovals() {
           statusText = 'Pending';
         }
 
+        const leaveTypeName = req.leave_type?.name || 'Leave';
+
         return `
           <li class="approval-item" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -588,7 +599,7 @@ async function loadPendingApprovals() {
                 ${req.employee?.full_name?.[0] || '?'}
               </div>
               <div class="approval-info">
-                <strong>${req.leave_type || 'Leave'}</strong>
+                <strong>${leaveTypeName}</strong>
                 <span>${formatDate(req.start_date)} – ${formatDate(req.end_date)}</span>
               </div>
             </div>
@@ -779,7 +790,7 @@ async function subscribeLeaveRequests() {
     supabase
       .channel('leave-requests-channel')
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'leave_requests'
+        event: '*', schema: 'public', table: 'leaves'
       }, async () => {
         await loadPendingApprovals();
         await loadKPIs();
