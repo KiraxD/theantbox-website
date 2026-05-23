@@ -203,7 +203,7 @@ document.getElementById('task-form')?.addEventListener('submit', async (e) => {
   const btn = e.target.querySelector('[type="submit"]');
   setLoading(btn, true);
   const data = readForm('task-form');
-  data.assigned_by = ctx.profile.id;
+  data.created_by = ctx.profile.id;
 
   try {
     if (editingTaskId) {
