@@ -12,7 +12,7 @@ import { getInvoices, getInvoice, createInvoice, updateInvoiceStatus, deleteInvo
 
 initTheme();
 // Require finance roles
-const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'hr', 'accountant'] });
+const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'hr', 'accountant', 'intern'] });
 if (!ctx) throw new Error('Not authenticated');
 initSidebar(); initLogout(); initThemeToggle(); initDropdowns(); setupModalClosers();
 
@@ -332,6 +332,38 @@ document.getElementById('btn-add-row')?.addEventListener('click', () => {
 
 document.getElementById('btn-print-invoice')?.addEventListener('click', () => {
   window.print();
+});
+
+document.getElementById('btn-download-pdf')?.addEventListener('click', () => {
+  const element = document.getElementById('print-area');
+  const invoiceNumber = document.getElementById('invoice-title-number').textContent || 'invoice';
+  
+  // Clone element to customize for PDF generation
+  const clone = element.cloneNode(true);
+  const container = clone.querySelector('.invoice-print-container');
+  if (container) {
+    container.style.border = 'none';
+    container.style.boxShadow = 'none';
+    container.style.padding = '20px';
+    container.style.maxWidth = '100%';
+    container.style.background = '#fff';
+    container.style.color = '#000';
+  }
+
+  // Ensure text elements render clean and visible in PDF regardless of theme
+  clone.querySelectorAll('span, strong, td, th, h1, h2, h3, h4, div').forEach(el => {
+    el.style.color = '#000';
+  });
+  
+  const opt = {
+    margin:       10,
+    filename:     `${invoiceNumber}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  html2pdf().set(opt).from(clone).save();
 });
 
 // ── Realtime Sync ─────────────────────────────────────────────

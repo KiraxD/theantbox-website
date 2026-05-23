@@ -107,7 +107,7 @@
       </a>
     </div>
     <div class="sidebar-divider"></div>
-                                            <nav class="sidebar-nav">
+                                                <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
       <a href="/erp/dashboard.html" class="nav-item">Dashboard</a>
       <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee">People</a>
@@ -116,7 +116,7 @@
       <a href="/erp/pages/crm.html" class="nav-item">CRM</a>
       <div class="nav-section-label" data-min-role="intern">Finance</div>
       <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr">Payroll</a>
-      <a href="/erp/pages/invoices.html" class="nav-item active" data-min-role="accountant">Invoices</a>
+      <a href="/erp/pages/invoices.html" class="nav-item active" data-min-role="intern">Invoices</a>
       <a href="/erp/pages/sales.html" class="nav-item">Sales & Finance</a>
       <div class="nav-section-label" data-min-role="manager">Analytics</div>
       <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager">Reports</a>
@@ -361,7 +361,11 @@
       <div style="display:flex; gap:8px;">
         <button class="btn btn-secondary" id="btn-print-invoice" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Print Invoice
+          Print
+        </button>
+        <button class="btn btn-purple" id="btn-download-pdf" type="button" style="background-color: var(--purple); color: var(--white); display: flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
         </button>
         <button class="modal-close" data-close-modal="detail-modal" aria-label="Close" style="position:static;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -372,10 +376,13 @@
     <div class="modal-body" id="print-area">
       <div class="invoice-print-container">
         <!-- Header -->
-        <div class="invoice-print-header">
-          <div>
-            <h2 style="font-size:24px; font-family:var(--serif); margin:0 0 4px; color:var(--purple);">THE ANT BOX</h2>
-            <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted);">Studio & Operations</span>
+        <div class="invoice-print-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="/imgs/Copy-of-Ant-Box-BRAND-GUIDELINE-1-removebg-preview.png" alt="The Ant Box" style="height: 48px; width: auto; object-fit: contain;">
+            <div>
+              <h2 style="font-size:24px; font-family:var(--serif); margin:0; color:var(--purple); line-height: 1.1;">THE ANT BOX</h2>
+              <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted);">Studio & Operations</span>
+            </div>
           </div>
           <div style="text-align: right;">
             <h1 style="font-size: 32px; font-family:var(--serif); margin:0 0 4px; font-weight:normal;" id="invoice-title-number">INV-XXXX</h1>
@@ -440,6 +447,7 @@
 </div>
 
 <div class="toast-container" id="toast-container"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5IfS516Oru1JAnibmA3rPQrHguY9KCxw+gOPcAHGcNYYB1RLTRckeyeh0mBKxGXRcX9gUsApQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="module" src="/erp/js/invoices.js"></script>
 </body>
 </html>
