@@ -455,19 +455,8 @@
   border: 2px solid var(--beige);
 }
 
-/* Theme toggle */
 .theme-toggle {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--white);
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--duration-fast);
+  display: none !important;
 }
 
 .theme-toggle:hover {

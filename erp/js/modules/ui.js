@@ -30,20 +30,17 @@ export function esc(str) {
 
 // ── Theme Toggle ──────────────────────────────────────────────
 export function initTheme() {
-  const saved = localStorage.getItem('erp_theme') || 'light';
-  applyTheme(saved);
+  applyTheme('light');
 }
 
 export function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('erp_theme', theme);
+  document.documentElement.setAttribute('data-theme', 'light');
+  localStorage.setItem('erp_theme', 'light');
 }
 
 export function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = current === 'light' ? 'dark' : 'light';
-  applyTheme(next);
-  return next;
+  applyTheme('light');
+  return 'light';
 }
 
 // ── Sidebar Toggle (mobile) ───────────────────────────────────
