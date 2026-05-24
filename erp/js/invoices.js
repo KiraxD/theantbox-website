@@ -12,7 +12,7 @@ import { getInvoices, getInvoice, createInvoice, updateInvoiceStatus, deleteInvo
 
 initTheme();
 // Require finance roles
-const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'hr', 'accountant', 'intern'] });
+const ctx = await bootPage({ requiredRoles: ['super_admin', 'admin', 'hr', 'accountant'] });
 if (!ctx) throw new Error('Not authenticated');
 initSidebar(); initLogout(); initThemeToggle(); initDropdowns(); setupModalClosers();
 

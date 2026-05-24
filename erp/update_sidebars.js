@@ -28,7 +28,7 @@ const newNavTemplate = `    <nav class="sidebar-nav">
       <a href="/erp/pages/crm.html" class="nav-item" data-page="crm.html">CRM</a>
       <div class="nav-section-label" data-min-role="intern">Finance</div>
       <a href="/erp/pages/payroll.html" class="nav-item" data-min-role="hr" data-page="payroll.html">Payroll</a>
-      <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="intern" data-page="invoices.html">Invoices</a>
+      <a href="/erp/pages/invoices.html" class="nav-item" data-min-role="accountant" data-page="invoices.html">Invoices</a>
       <a href="/erp/pages/sales.html" class="nav-item" data-page="sales.html">Sales & Finance</a>
       <div class="nav-section-label" data-min-role="manager">Analytics</div>
       <a href="/erp/pages/reports.html" class="nav-item" data-min-role="manager" data-page="reports.html">Reports</a>
