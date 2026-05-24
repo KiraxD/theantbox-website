@@ -71,6 +71,17 @@ export async function createLead(payload) {
   const session = await supabase.auth.getSession();
   const currentUserId = session.data.session?.user.id;
 
+  const normalizeSource = (src) => {
+    if (!src) return 'other';
+    const normalized = String(src).trim().toLowerCase().replace(/[\s_-]+/g, '_');
+    const allowed = ['website', 'referral', 'cold_call', 'email', 'event', 'social', 'other'];
+    if (allowed.includes(normalized)) return normalized;
+    if (normalized === 'direct') return 'other';
+    if (normalized === 'linkedin') return 'social';
+    if (normalized === 'email_campaign') return 'email';
+    return 'other';
+  };
+
   const { data, error } = await supabase
     .from('leads')
     .insert({
@@ -80,7 +91,7 @@ export async function createLead(payload) {
       company,
       designation,
       industry,
-      source,
+      source: normalizeSource(source),
       assigned_to,
       status: 'new',
       created_by: currentUserId,

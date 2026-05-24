@@ -131,6 +131,8 @@
     const t = localStorage.getItem('erp_theme') || 'light';
     document.documentElement.setAttribute('data-theme', t);
   </script>
+  <!-- SheetJS for Excel Import -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -215,6 +217,10 @@
           <p class="page-desc">Manage your pipeline, log client calls, won deals, and manage customer base.</p>
         </div>
         <div class="page-header-actions">
+          <button class="btn btn-secondary" id="btn-import-excel" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Import Excel
+          </button>
           <button class="btn btn-purple" id="btn-add-lead">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Lead
@@ -492,6 +498,7 @@
   </div>
 </div>
 
+<input type="file" id="excel-import-input" class="hidden" accept=".xlsx,.xls,.csv">
 <div class="toast-container" id="toast-container"></div>
 <script type="module" src="/erp/js/crm.js"></script>
 </body>

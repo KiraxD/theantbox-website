@@ -762,6 +762,153 @@ async function loadInteractions(type, id) {
   }
 }
 
+// Excel Import mappings
+const LEAD_HEADER_MAP = {
+  name: 'name',
+  contact_name: 'name',
+  fullname: 'name',
+  full_name: 'name',
+  email: 'email',
+  email_address: 'email',
+  phone: 'phone',
+  phone_number: 'phone',
+  company: 'company',
+  company_name: 'company',
+  designation: 'designation',
+  job_title: 'designation',
+  title: 'designation',
+  industry: 'industry',
+  source: 'source'
+};
+
+const CLIENT_HEADER_MAP = {
+  name: 'name',
+  client_name: 'name',
+  company_name: 'name',
+  email: 'email',
+  email_address: 'email',
+  phone: 'phone',
+  phone_number: 'phone',
+  address: 'address',
+  street_address: 'address',
+  city: 'city',
+  state: 'state',
+  province: 'state',
+  postal_code: 'postal_code',
+  zip: 'postal_code',
+  zip_code: 'postal_code',
+  country: 'country'
+};
+
+function normalizeKey(key) {
+  return String(key).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+async function importExcel(file) {
+  const isLeads = (state.activeTab === 'leads-panel');
+  const typeLabel = isLeads ? 'Leads' : 'Clients';
+  const headerMap = isLeads ? LEAD_HEADER_MAP : CLIENT_HEADER_MAP;
+
+  try {
+    const dataBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(dataBuffer, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(worksheet);
+
+    if (!rawRows || rawRows.length === 0) {
+      throw new Error('The selected sheet is empty.');
+    }
+
+    const approved = await confirm({
+      title: `Import ${typeLabel} from Excel?`,
+      message: `${rawRows.length} row(s) will be processed. Please make sure the columns match expected fields (e.g., Name, Email, Phone, Company).`,
+      confirmText: 'Import',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!approved) return;
+
+    let successCount = 0;
+    const failures = [];
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const row = rawRows[i];
+      const payload = {};
+      
+      // Map columns
+      Object.entries(row).forEach(([key, value]) => {
+        const normKey = normalizeKey(key);
+        const targetField = headerMap[normKey];
+        if (targetField && value !== undefined && value !== null) {
+          payload[targetField] = String(value).trim();
+        }
+      });
+
+      // Validation
+      if (isLeads) {
+        if (!payload.name || !payload.email) {
+          failures.push(`Row ${i + 2}: Name and Email are required for Leads.`);
+          continue;
+        }
+        try {
+          await createLead(payload);
+          successCount++;
+        } catch (err) {
+          failures.push(`Row ${i + 2}: ${err.message}`);
+        }
+      } else {
+        if (!payload.name) {
+          failures.push(`Row ${i + 2}: Name is required for Clients.`);
+          continue;
+        }
+        try {
+          await createClient(payload);
+          successCount++;
+        } catch (err) {
+          failures.push(`Row ${i + 2}: ${err.message}`);
+        }
+      }
+    }
+
+    // Refresh UI
+    if (isLeads) {
+      loadLeadsPipeline();
+    } else {
+      loadClientsDirectory();
+    }
+
+    if (successCount > 0) {
+      toast.success(`${typeLabel} Import Finished`, `Successfully imported ${successCount} ${typeLabel.toLowerCase()}(s).`);
+    }
+
+    if (failures.length > 0) {
+      toast.warning(
+        'Some rows could not be imported',
+        failures.slice(0, 2).join(' ') + (failures.length > 2 ? ` +${failures.length - 2} more.` : '')
+      );
+    }
+
+  } catch (err) {
+    toast.error('Import failed', err.message);
+  }
+}
+
+// Bind Excel Import triggers
+const btnImportExcel = document.getElementById('btn-import-excel');
+const excelInput = document.getElementById('excel-import-input');
+
+btnImportExcel?.addEventListener('click', () => {
+  excelInput?.click();
+});
+
+excelInput?.addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  await importExcel(file);
+});
+
 // Helper Debounce
 function debounce(func, wait) {
   let timeout;
