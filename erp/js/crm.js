@@ -244,7 +244,12 @@ async function init() {
       state.employees.map(emp => `<option value="${emp.id}">${emp.full_name}</option>`).join('');
 
     // 2. Fetch Pipeline Stages
-    state.stages = await getSalesPipelineStages();
+    const dbStages = await getSalesPipelineStages();
+    state.stages = dbStages.map(s => {
+      let key = s.name.toLowerCase().replace(/\s+/g, '_');
+      if (key === 'new_lead') key = 'new';
+      return { ...s, key };
+    });
 
     // 3. Load active tab
     if (state.activeTab === 'leads-panel') {
