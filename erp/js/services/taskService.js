@@ -116,13 +116,20 @@ export async function deleteComment(commentId) {
 }
 
 // ── Get Task Stats ────────────────────────────────────────────
-export async function getTaskStats() {
+export async function getTaskStats(employeeId = null) {
   const supabase = await getSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('tasks')
-    .select('status, priority');
+    .select('status, priority, deadline, assigned_to');
 
+  if (employeeId) {
+    query = query.eq('assigned_to', employeeId);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return {
     total: data.length,
@@ -133,10 +140,11 @@ export async function getTaskStats() {
     high_priority: data.filter(t => t.priority === 'high').length,
     overdue: data.filter(t => {
       if (t.status === 'done') return false;
-      return t.deadline && new Date(t.deadline) < new Date();
+      return t.deadline && t.deadline < todayStr;
     }).length,
   };
 }
+
 
 // ── Subscribe to Task Updates ─────────────────────────────────
 export async function subscribeTasks(callback) {

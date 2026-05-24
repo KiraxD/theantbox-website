@@ -44,56 +44,184 @@ function msToHHMM(ms) {
 
 let cachedAttendStats = null;
 
+// ── Intern specific helpers & percentage calculations ─────────
+function hideInternRestrictedElements() {
+  const elementsToHide = [
+    'card-kpi-headcount',
+    'card-kpi-payroll',
+    'card-attendance-trend',
+    'card-recent-activity',
+    'card-dept-headcount',
+    'card-quick-actions',
+    'btn-new-task-header'
+  ];
+
+  elementsToHide.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  const kpiGrid = document.getElementById('kpi-grid');
+  if (kpiGrid) {
+    kpiGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(260px, 1fr))';
+  }
+
+  const tasksCard = document.getElementById('card-kpi-tasks');
+  if (tasksCard) {
+    const label = tasksCard.querySelector('.stat-card-label');
+    if (label) label.textContent = 'My Active Tasks';
+  }
+
+  const attendanceCard = document.getElementById('card-kpi-attendance');
+  if (attendanceCard) {
+    const label = attendanceCard.querySelector('.stat-card-label');
+    if (label) label.textContent = 'My Attendance';
+  }
+}
+
+async function calculateInternAttendancePercentage(employeeId) {
+  try {
+    const supabase = await getSupabaseClient();
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const todayDom = now.getDate();
+
+    const start = `${year}-${String(month).padStart(2, '0')}-01`;
+    const end = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
+
+    const { data: attRows, error: attErr } = await supabase
+      .from('attendance')
+      .select('date, status')
+      .eq('employee_id', employeeId)
+      .gte('date', start)
+      .lte('date', end);
+
+    if (attErr) throw attErr;
+
+    const { data: leaveRows, error: leaveErr } = await supabase
+      .from('leaves')
+      .select('start_date, end_date')
+      .eq('employee_id', employeeId)
+      .eq('status', 'approved')
+      .or(`start_date.lte.${end},end_date.gte.${start}`);
+
+    if (leaveErr) throw leaveErr;
+
+    let workDays = 0;
+    let attendedDays = 0;
+
+    for (let day = 1; day <= todayDom; day++) {
+      const dateObj = new Date(year, month - 1, day);
+      const dayOfWeek = dateObj.getDay();
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+      workDays++;
+
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const hasCheckedIn = (attRows || []).some(
+        r => r.date === dateStr && ['present', 'late'].includes(r.status)
+      );
+
+      if (hasCheckedIn) {
+        attendedDays++;
+        continue;
+      }
+
+      const hasApprovedLeave = (leaveRows || []).some(l => {
+        return l.start_date <= dateStr && l.end_date >= dateStr;
+      });
+
+      if (hasApprovedLeave) {
+        attendedDays++;
+      }
+    }
+
+    return workDays > 0 ? Math.round((attendedDays / workDays) * 100) : 100;
+  } catch (err) {
+    console.error('[calculateInternAttendancePercentage]', err);
+    return 0;
+  }
+}
+
 async function loadKPIs() {
   try {
     const now = new Date();
-    const [empStats, attendStats, taskStats, payStats] = await Promise.all([
-      getEmployeeStats(),
-      getTodaySummary(),
-      getTaskStats(),
-      getPayrollStats(now.getMonth() + 1, now.getFullYear()),
-    ]);
+    const isIntern = ctx.profile.role === 'intern';
 
-    cachedAttendStats = attendStats;
+    if (isIntern) {
+      hideInternRestrictedElements();
 
-    // Headcount
-    setText('kpi-headcount', empStats.total);
-    setText('kpi-active-emp', `${empStats.active} active`);
+      const [taskStats, ownAttendPercent] = await Promise.all([
+        getTaskStats(ctx.profile.id),
+        calculateInternAttendancePercentage(ctx.profile.id),
+      ]);
 
-    // Attendance — show unique check-ins and % rate
-    const attendRate = empStats.active > 0
-      ? Math.round((attendStats.uniqueCheckIns / empStats.active) * 100)
-      : 0;
-    setText('kpi-attendance', `${attendRate}%`);
-    setText('kpi-attendance-sub', `${attendStats.uniqueCheckIns} checked in · ${attendStats.currentlyInCount} active now`);
+      setText('kpi-tasks', taskStats.in_progress + taskStats.todo + taskStats.in_review);
+      setText('kpi-tasks-sub', `${taskStats.overdue} overdue`);
 
-    // Tasks
-    setText('kpi-tasks', taskStats.in_progress);
-    setText('kpi-tasks-sub', `${taskStats.overdue} overdue`);
+      setText('kpi-attendance', `${ownAttendPercent}%`);
+      setText('kpi-attendance-sub', `Monthly average (weekdays)`);
 
-    // Payroll
-    setText('kpi-payroll', formatCurrency(payStats.total_payroll));
-    setText('kpi-payroll-sub', `${payStats.count} employees this month`);
+      const pendingLeaves = await getPendingLeavesCount();
+      setText('kpi-pending', pendingLeaves);
 
-    // Interns
-    setText('kpi-interns', empStats.interns);
+      const sparklines = ['spark-emp', 'spark-attend', 'spark-tasks', 'spark-payroll'];
+      sparklines.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
 
-    // Pending
-    const pendingLeaves = await getPendingLeavesCount();
-    setText('kpi-pending', pendingLeaves);
+    } else {
+      const [empStats, attendStats, taskStats, payStats] = await Promise.all([
+        getEmployeeStats(),
+        getTodaySummary(),
+        getTaskStats(),
+        getPayrollStats(now.getMonth() + 1, now.getFullYear()),
+      ]);
 
-    const pendingLabelEl = document.getElementById('kpi-pending')?.previousElementSibling;
-    if (pendingLabelEl) {
-      const isAdmin = ['hr', 'manager', 'super_admin', 'admin'].includes(ctx.profile.role);
-      pendingLabelEl.textContent = isAdmin ? 'Pending Approvals' : 'My Pending Leaves';
+      cachedAttendStats = attendStats;
+
+      setText('kpi-headcount', empStats.total);
+      setText('kpi-active-emp', `${empStats.active} active`);
+
+      // Attendance — weekend holiday logic
+      const dayOfWeek = now.getDay();
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+      if (isWeekend) {
+        setText('kpi-attendance', 'Holiday');
+        setText('kpi-attendance-sub', 'Weekend (Office Closed)');
+      } else {
+        const attendRate = empStats.active > 0
+          ? Math.round((attendStats.uniqueCheckIns / empStats.active) * 100)
+          : 0;
+        setText('kpi-attendance', `${attendRate}%`);
+        setText('kpi-attendance-sub', `${attendStats.uniqueCheckIns} checked in · ${attendStats.currentlyInCount} active now`);
+      }
+
+      setText('kpi-tasks', taskStats.in_progress);
+      setText('kpi-tasks-sub', `${taskStats.overdue} overdue`);
+
+      setText('kpi-payroll', formatCurrency(payStats.total_payroll));
+      setText('kpi-payroll-sub', `${payStats.count} employees this month`);
+
+      setText('kpi-interns', empStats.interns);
+
+      const pendingLeaves = await getPendingLeavesCount();
+      setText('kpi-pending', pendingLeaves);
+
+      const pendingLabelEl = document.getElementById('kpi-pending')?.previousElementSibling;
+      if (pendingLabelEl) {
+        const isAdmin = ['hr', 'manager', 'super_admin', 'admin'].includes(ctx.profile.role);
+        pendingLabelEl.textContent = isAdmin ? 'Pending Approvals' : 'My Pending Leaves';
+      }
+
+      renderSparklines();
+      loadLiveAttendance(attendStats);
     }
-
-    // Sparklines (real trend data)
-    renderSparklines();
-
-    // Live attendance panel for admins
-    loadLiveAttendance(attendStats);
-
   } catch (err) {
     console.error('[KPIs]', err);
   }
@@ -317,49 +445,52 @@ async function renderSparklines() {
 // ── Load Charts ───────────────────────────────────────────────
 async function loadCharts() {
   const supabase = await getSupabaseClient();
+  const isIntern = ctx.profile.role === 'intern';
 
   // ── Attendance trend — last 7 days (real data) ──────────────
-  try {
-    const dates = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().split('T')[0];
-    });
-    const dayLabels = dates.map(d =>
-      new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })
-    );
-
-    const { data: attRows } = await supabase
-      .from('attendance')
-      .select('date, status')
-      .gte('date', dates[0])
-      .lte('date', dates[6]);
-
-    const presentByDay = {};
-    const leaveByDay   = {};
-    dates.forEach(d => { presentByDay[d] = 0; leaveByDay[d] = 0; });
-
-    (attRows || []).forEach(r => {
-      if ((r.status === 'present' || r.status === 'half_day') && presentByDay[r.date] !== undefined) presentByDay[r.date]++;
-      if (r.status === 'leave'    && leaveByDay[r.date]   !== undefined) leaveByDay[r.date]++;
-    });
-
-    if (document.getElementById('chart-attendance')) {
-      createAreaChart('chart-attendance', {
-        series: [
-          { name: 'Present',  data: dates.map(d => presentByDay[d]) },
-          { name: 'On Leave', data: dates.map(d => leaveByDay[d]) },
-        ],
-        categories: dayLabels,
+  if (!isIntern) {
+    try {
+      const dates = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
       });
+      const dayLabels = dates.map(d =>
+        new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })
+      );
+
+      const { data: attRows } = await supabase
+        .from('attendance')
+        .select('date, status')
+        .gte('date', dates[0])
+        .lte('date', dates[6]);
+
+      const presentByDay = {};
+      const leaveByDay   = {};
+      dates.forEach(d => { presentByDay[d] = 0; leaveByDay[d] = 0; });
+
+      (attRows || []).forEach(r => {
+        if ((r.status === 'present' || r.status === 'half_day') && presentByDay[r.date] !== undefined) presentByDay[r.date]++;
+        if (r.status === 'leave'    && leaveByDay[r.date]   !== undefined) leaveByDay[r.date]++;
+      });
+
+      if (document.getElementById('chart-attendance')) {
+        createAreaChart('chart-attendance', {
+          series: [
+            { name: 'Present',  data: dates.map(d => presentByDay[d]) },
+            { name: 'On Leave', data: dates.map(d => leaveByDay[d]) },
+          ],
+          categories: dayLabels,
+        });
+      }
+    } catch (err) {
+      console.warn('[chart-attendance]', err);
     }
-  } catch (err) {
-    console.warn('[chart-attendance]', err);
   }
 
   // ── Task status donut (real data) ───────────────────────────
   try {
-    const taskStats = await getTaskStats();
+    const taskStats = isIntern ? await getTaskStats(ctx.profile.id) : await getTaskStats();
     if (document.getElementById('chart-tasks')) {
       createDonutChart('chart-tasks', {
         series: [taskStats.todo, taskStats.in_progress, taskStats.in_review, taskStats.done],
@@ -372,33 +503,35 @@ async function loadCharts() {
   }
 
   // ── Role / Dept headcount bar (real data) ───────────────────
-  try {
-    const { data: empRows } = await supabase
-      .from('employees')
-      .select('role');
+  if (!isIntern) {
+    try {
+      const { data: empRows } = await supabase
+        .from('employees')
+        .select('role');
 
-    const roleLabelMap = {
-      super_admin: 'Super Admin', admin: 'Admin', hr: 'HR',
-      manager: 'Manager', accountant: 'Accountant',
-      employee: 'Employee', intern: 'Intern',
-    };
-    const roleOrder = ['super_admin', 'admin', 'hr', 'manager', 'accountant', 'employee', 'intern'];
-    const roleCount = {};
-    (empRows || []).forEach(e => { roleCount[e.role] = (roleCount[e.role] || 0) + 1; });
+      const roleLabelMap = {
+        super_admin: 'Super Admin', admin: 'Admin', hr: 'HR',
+        manager: 'Manager', accountant: 'Accountant',
+        employee: 'Employee', intern: 'Intern',
+      };
+      const roleOrder = ['super_admin', 'admin', 'hr', 'manager', 'accountant', 'employee', 'intern'];
+      const roleCount = {};
+      (empRows || []).forEach(e => { roleCount[e.role] = (roleCount[e.role] || 0) + 1; });
 
-    const filteredRoles = roleOrder.filter(r => roleCount[r] > 0);
-    const counts = filteredRoles.map(r => roleCount[r]);
-    const labels = filteredRoles.map(r => roleLabelMap[r] || r);
+      const filteredRoles = roleOrder.filter(r => roleCount[r] > 0);
+      const counts = filteredRoles.map(r => roleCount[r]);
+      const labels = filteredRoles.map(r => roleLabelMap[r] || r);
 
-    if (document.getElementById('chart-dept') && filteredRoles.length > 0) {
-      createBarChart('chart-dept', {
-        series: [{ name: 'Headcount', data: counts }],
-        categories: labels,
-        colors: ['#8e43ac'],
-      });
+      if (document.getElementById('chart-dept') && filteredRoles.length > 0) {
+        createBarChart('chart-dept', {
+          series: [{ name: 'Headcount', data: counts }],
+          categories: labels,
+          colors: ['#8e43ac'],
+        });
+      }
+    } catch (err) {
+      console.warn('[chart-dept]', err);
     }
-  } catch (err) {
-    console.warn('[chart-dept]', err);
   }
 }
 
@@ -406,6 +539,9 @@ async function loadCharts() {
 async function loadActivity() {
   const list = document.getElementById('activity-list');
   if (!list) return;
+
+  const isIntern = ctx.profile.role === 'intern';
+  if (isIntern) return;
 
   try {
     const supabase = await getSupabaseClient();
