@@ -76,9 +76,11 @@ export async function createLeaveRequest(payload) {
     reason,
   } = payload;
 
-  if (!employee_id || !leave_type_id || !start_date || !end_date || !reason) {
-    throw new Error('Missing required fields: employee_id, leave_type_id, start_date, end_date, reason');
+  if (!employee_id || !leave_type_id || !start_date || !end_date) {
+    throw new Error('Missing required fields: employee_id, leave_type_id, start_date, end_date');
   }
+
+  const reasonText = reason?.trim() || 'Not specified';
 
   // Calculate total days
   const start = new Date(start_date);
@@ -121,7 +123,7 @@ export async function createLeaveRequest(payload) {
       start_date,
       end_date,
       total_days: totalDays,
-      reason,
+      reason: reasonText,
       status: 'pending',
       requested_by: (await supabase.auth.getSession()).data.session?.user.id,
       created_at: new Date().toISOString(),
