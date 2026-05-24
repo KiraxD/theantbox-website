@@ -184,8 +184,16 @@ async function loadKPIs() {
 
       cachedAttendStats = attendStats;
 
-      setText('kpi-headcount', empStats.total);
-      setText('kpi-active-emp', `${empStats.active} active`);
+      const canSeeHeadcount = ['super_admin', 'admin', 'hr'].includes(ctx.profile.role);
+      if (!canSeeHeadcount) {
+        const el = document.getElementById('card-kpi-headcount');
+        if (el) el.style.display = 'none';
+      } else {
+        const el = document.getElementById('card-kpi-headcount');
+        if (el) el.style.display = 'block';
+        setText('kpi-headcount', empStats.total);
+        setText('kpi-active-emp', `${empStats.active} active`);
+      }
 
       // Attendance — weekend holiday logic
       const dayOfWeek = now.getDay();
