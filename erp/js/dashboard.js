@@ -337,19 +337,17 @@ async function loadCharts() {
 
     const presentByDay = {};
     const leaveByDay   = {};
-    const halfByDay    = {};
-    dates.forEach(d => { presentByDay[d] = 0; leaveByDay[d] = 0; halfByDay[d] = 0; });
+    dates.forEach(d => { presentByDay[d] = 0; leaveByDay[d] = 0; });
 
     (attRows || []).forEach(r => {
-      if (r.status === 'present'  && presentByDay[r.date] !== undefined) presentByDay[r.date]++;
-      if (r.status === 'half_day' && halfByDay[r.date]    !== undefined) halfByDay[r.date]++;
+      if ((r.status === 'present' || r.status === 'half_day') && presentByDay[r.date] !== undefined) presentByDay[r.date]++;
       if (r.status === 'leave'    && leaveByDay[r.date]   !== undefined) leaveByDay[r.date]++;
     });
 
     if (document.getElementById('chart-attendance')) {
       createAreaChart('chart-attendance', {
         series: [
-          { name: 'Present',  data: dates.map(d => presentByDay[d] + halfByDay[d]) },
+          { name: 'Present',  data: dates.map(d => presentByDay[d]) },
           { name: 'On Leave', data: dates.map(d => leaveByDay[d]) },
         ],
         categories: dayLabels,

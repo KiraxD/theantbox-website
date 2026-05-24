@@ -919,9 +919,7 @@ async function syncFromSheets() {
       });
       const total_hours = netMs / 3600000;
 
-      const status = clock_in
-        ? (total_hours < 4 ? 'half_day' : 'present')
-        : 'absent';
+      const status = clock_in ? 'present' : 'absent';
 
       return {
         employee_id: group.empId,

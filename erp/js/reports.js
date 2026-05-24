@@ -53,19 +53,18 @@ async function loadReportData() {
     
     if (aErr) throw aErr;
 
-    let present = 0, absent = 0, leave = 0, half_day = 0;
+    let present = 0, absent = 0, leave = 0;
     attendance.forEach(a => {
-      if (a.status === 'present') present++;
+      if (a.status === 'present' || a.status === 'half_day') present++;
       else if (a.status === 'absent') absent++;
       else if (a.status === 'leave') leave++;
-      else if (a.status === 'half_day') half_day++;
     });
 
     const attOptions = {
-      series: [present, absent, leave, half_day],
+      series: [present, absent, leave],
       chart: { type: 'donut', height: 300, background: 'transparent' },
-      labels: ['Present', 'Absent', 'Leave', 'Half Day'],
-      colors: ['#10B981', '#EF4444', '#3B82F6', '#F59E0B'],
+      labels: ['Present', 'Absent', 'Leave'],
+      colors: ['#10B981', '#EF4444', '#3B82F6'],
       theme: { mode: localStorage.getItem('erp_theme') === 'dark' ? 'dark' : 'light' }
     };
     new ApexCharts(document.querySelector("#chart-attendance"), attOptions).render();
