@@ -4,7 +4,7 @@
 // ============================================================
 
 import { bootPage } from './modules/authGuard.js';
-import { initTheme, initSidebar, initLogout, initThemeToggle, initDropdowns, initNotifToggle, formatRelative, formatRoleLabel } from './modules/ui.js';
+import { initTheme, initSidebar, initLogout, initThemeToggle, initDropdowns, initNotifToggle, formatRelative, formatRoleLabel, avatarHTML } from './modules/ui.js';
 import { createAreaChart, createDonutChart, createBarChart, createSparkline } from './modules/charts.js';
 import { getEmployeeStats } from './services/employeeService.js';
 import { getTodaySummary } from './services/attendanceService.js';
@@ -13,6 +13,8 @@ import { getPayrollStats } from './services/payrollService.js';
 import { formatCurrency } from './services/payrollService.js';
 import getSupabaseClient from './services/supabaseClient.js';
 import toast from './modules/toast.js';
+import { getNotices, createNotice, deleteNotice, toggleReaction } from './services/noticeService.js';
+import { openModal, closeModal, setupModalClosers, confirm } from './modules/modal.js';
 
 // ── Boot ──────────────────────────────────────────────────────
 initTheme();
@@ -961,8 +963,223 @@ async function subscribeAttendanceLive() {
   }
 }
 
+// ── Notice Board Logic ────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function handleDeleteNotice(noticeId) {
+  const confirmed = await confirm({
+    title: 'Delete Announcement?',
+    message: 'Are you sure you want to delete this notice? This action cannot be undone.',
+    confirmText: 'Delete',
+    type: 'danger'
+  });
+  if (!confirmed) return;
+
+  try {
+    await deleteNotice(noticeId);
+    toast.success('Notice deleted successfully');
+    await renderNoticeBoard();
+  } catch (err) {
+    toast.error('Failed to delete notice', err.message);
+  }
+}
+
+async function handleReactionClick(noticeId, reactionType, btnEl) {
+  btnEl.disabled = true;
+  try {
+    await toggleReaction(noticeId, reactionType);
+    await renderNoticeBoard();
+  } catch (err) {
+    toast.error('Reaction failed', err.message);
+  } finally {
+    btnEl.disabled = false;
+  }
+}
+
+function bindNoticeBoardEvents(feedEl) {
+  feedEl.querySelectorAll('.btn-delete-notice').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const noticeId = btn.dataset.noticeId;
+      await handleDeleteNotice(noticeId);
+    });
+  });
+
+  feedEl.querySelectorAll('.reaction-pill').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const noticeCard = btn.closest('.notice-card');
+      if (!noticeCard) return;
+      const noticeId = noticeCard.dataset.noticeId;
+      const reactionType = btn.dataset.reactionType;
+      await handleReactionClick(noticeId, reactionType, btn);
+    });
+  });
+}
+
+async function renderNoticeBoard() {
+  const feedEl = document.getElementById('notice-board-feed');
+  if (!feedEl) return;
+
+  try {
+    const notices = await getNotices();
+    const canPostOrDelete = ['super_admin', 'hr'].includes(ctx.profile.role);
+
+    if (notices.length === 0) {
+      feedEl.innerHTML = `
+        <div style="text-align:center; padding:32px 16px; color:var(--muted);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px; opacity:0.6;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <p style="font-size:14px; font-weight:500; margin:0;">No announcements posted yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    for (const notice of notices) {
+      const reactionsCount = { thumbs_up: 0, heart: 0, clap: 0, fire: 0 };
+      const userReacted = { thumbs_up: false, heart: false, clap: false, fire: false };
+
+      (notice.notice_reactions || []).forEach(r => {
+        if (r.reaction_type in reactionsCount) {
+          reactionsCount[r.reaction_type]++;
+        }
+        if (r.employee_id === ctx.profile.id) {
+          userReacted[r.reaction_type] = true;
+        }
+      });
+
+      const authorName = notice.created_by_emp?.full_name || 'System';
+      const authorRole = notice.created_by_emp?.role ? formatRoleLabel(notice.created_by_emp.role) : '';
+      const authorDisplay = authorRole ? `${authorName} (${authorRole})` : authorName;
+
+      html += `
+        <div class="notice-card ${notice.is_pinned ? 'pinned' : ''}" data-notice-id="${notice.id}">
+          <div class="notice-card-header">
+            <div class="notice-card-author">
+              ${avatarHTML(notice.created_by_emp, 'sm')}
+              <div class="notice-card-author-info">
+                <span class="author-name">Posted by ${esc(authorDisplay)}</span>
+                <span class="notice-time">${formatRelative(notice.created_at)}</span>
+              </div>
+            </div>
+            <div class="notice-card-actions">
+              ${notice.is_pinned ? '<span class="pinned-badge">📌 Pinned</span>' : ''}
+              ${canPostOrDelete ? `
+                <button class="btn-delete-notice" data-notice-id="${notice.id}" title="Delete notice">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="notice-card-body">
+            <h4 class="notice-title">${esc(notice.title)}</h4>
+            <p class="notice-content">${esc(notice.content).replace(/\n/g, '<br>')}</p>
+          </div>
+          <div class="notice-card-footer">
+            <div class="notice-reactions">
+              <button class="reaction-pill ${userReacted.thumbs_up ? 'active' : ''}" data-reaction-type="thumbs_up">
+                <span>👍</span> <span class="count">${reactionsCount.thumbs_up}</span>
+              </button>
+              <button class="reaction-pill ${userReacted.heart ? 'active' : ''}" data-reaction-type="heart">
+                <span>❤️</span> <span class="count">${reactionsCount.heart}</span>
+              </button>
+              <button class="reaction-pill ${userReacted.clap ? 'active' : ''}" data-reaction-type="clap">
+                <span>👏</span> <span class="count">${reactionsCount.clap}</span>
+              </button>
+              <button class="reaction-pill ${userReacted.fire ? 'active' : ''}" data-reaction-type="fire">
+                <span>🔥</span> <span class="count">${reactionsCount.fire}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    feedEl.innerHTML = html;
+    bindNoticeBoardEvents(feedEl);
+  } catch (err) {
+    feedEl.innerHTML = `<p class="text-danger text-center" style="padding:20px;">Error: ${esc(err.message)}</p>`;
+  }
+}
+
+function setupNoticeBoard() {
+  setupModalClosers();
+
+  const canPost = ['super_admin', 'hr'].includes(ctx.profile.role);
+  const postBtn = document.getElementById('btn-post-notice');
+  if (postBtn) {
+    if (canPost) {
+      postBtn.classList.remove('hidden');
+      postBtn.addEventListener('click', () => {
+        const form = document.getElementById('notice-form');
+        if (form) form.reset();
+        openModal('notice-modal');
+      });
+    } else {
+      postBtn.classList.add('hidden');
+    }
+  }
+
+  const noticeForm = document.getElementById('notice-form');
+  if (noticeForm) {
+    noticeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = noticeForm.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(noticeForm);
+        const payload = {
+          title: fd.get('title'),
+          content: fd.get('content'),
+          is_pinned: noticeForm.querySelector('#notice_pinned').checked,
+          expires_at: fd.get('expires_at') || null
+        };
+
+        await createNotice(payload);
+        closeModal('notice-modal');
+        toast.success('Notice published successfully');
+        await renderNoticeBoard();
+      } catch (err) {
+        toast.error('Failed to publish notice', err.message);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+}
+
+async function subscribeNoticesRealtime() {
+  try {
+    const supabase = await getSupabaseClient();
+    supabase
+      .channel('notices-realtime')
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'notices'
+      }, async () => {
+        await renderNoticeBoard();
+      })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'notice_reactions'
+      }, async () => {
+        await renderNoticeBoard();
+      })
+      .subscribe();
+  } catch (err) {
+    console.warn('[subscribeNoticesRealtime]', err);
+  }
+}
+
 // ── Init all ──────────────────────────────────────────────────
 bindNotificationActions();
+setupNoticeBoard();
 
 await Promise.all([
   loadKPIs(),
@@ -972,6 +1189,8 @@ await Promise.all([
   subscribeNotifications(),
   subscribeLeaveRequests(),
   subscribeAttendanceLive(),
+  renderNoticeBoard(),
+  subscribeNoticesRealtime(),
 ]);
 
 // Recalculate and update active clock durations every 30 seconds
