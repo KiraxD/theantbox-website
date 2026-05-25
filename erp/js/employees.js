@@ -268,9 +268,6 @@ async function loadEmployees() {
         <td>${statusBadge(emp.status || 'active')}</td>
         <td>
           <div class="table-actions">
-            <button class="btn btn-sm btn-ghost btn-icon-sm" data-action="view" data-id="${emp.id}" title="View">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
             ${['super_admin', 'admin', 'hr'].includes(ctx.profile.role) ? `
             <button class="btn btn-sm btn-ghost btn-icon-sm" data-action="edit" data-id="${emp.id}" title="Edit">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -290,16 +287,6 @@ async function loadEmployees() {
         const { action, id } = btn.dataset;
         if (action === 'edit') openEditModal(id);
         if (action === 'delete') archiveEmployee(id);
-        if (action === 'view') window.location.href = `/erp/pages/profile.html?id=${id}`;
-      });
-    });
-
-    tbody.querySelectorAll('tr[data-id]').forEach(row => {
-      row.style.cursor = 'pointer';
-      row.addEventListener('click', e => {
-        if (!e.target.closest('[data-action]')) {
-          window.location.href = `/erp/pages/profile.html?id=${row.dataset.id}`;
-        }
       });
     });
 
