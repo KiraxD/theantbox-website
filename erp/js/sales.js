@@ -1188,5 +1188,6 @@ function setupPagination(el, totalPages, currentPage, onPageChange) {
 }
 
 // ── Initial Boot ─────────────────────────────────────────────
+initTabs();
 renderActionButtons();
 loadQuotations(); // default active panel
