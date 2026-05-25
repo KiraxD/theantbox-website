@@ -22,7 +22,7 @@ const htmlFiles = [
 const newNavTemplate = `    <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
       <a href="/erp/dashboard.html" class="nav-item" data-page="dashboard.html">Dashboard</a>
-      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee" data-page="employees.html">People</a>
+      <a href="/erp/pages/employees.html" class="nav-item" data-min-role="employee" data-page="employees.html">Employees</a>
       <a href="/erp/pages/attendance.html" class="nav-item" data-page="attendance.html">Attendance</a>
       <a href="/erp/pages/tasks.html" class="nav-item" data-page="tasks.html">Tasks</a>
       <a href="/erp/pages/crm.html" class="nav-item" data-page="crm.html">CRM</a>
